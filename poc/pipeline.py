@@ -11,8 +11,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
+
+for _stream in (sys.stdout, sys.stderr):  # Windows 콘솔(cp949)에서 한글·기호 출력 깨짐 방지
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 from poc import comments as comments_mod
 from poc import m1_segments, m2_captions, render
@@ -29,11 +34,28 @@ def _load_json(path: str | Path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
-def cmd_stt(args):
-    from poc.stt_whisper import transcribe
+def _terms_prompt(terms_path: str | None) -> str | None:
+    """상품 용어 목록 → STT 힌트 프롬프트 (제품명·고유명사 인식 보조)."""
+    if not terms_path:
+        return None
+    terms = _load_json(terms_path)
+    words = [terms.get("product_name", "")] + [t["canonical"] for t in terms.get("terms", [])]
+    return ", ".join(w for w in words if w)
 
+
+def cmd_stt(args):
     t0 = time.time()
-    cues = transcribe(args.video, args.out, model_size=args.model)
+    if args.engine == "whisper":
+        from poc.stt_whisper import transcribe
+
+        cues = transcribe(
+            args.video, args.out, model_size=args.model or "large-v3", device=args.device,
+            initial_prompt=_terms_prompt(args.terms),
+        )
+    else:
+        from poc.stt_google import transcribe
+
+        cues = transcribe(args.video, args.out, model=args.model or "chirp_3", terms_path=args.terms)
     print(f"STT 완료: 큐 {len(cues)}개 → {args.out} ({time.time()-t0:.0f}초 소요)")
 
 
@@ -76,7 +98,7 @@ def cmd_render(args):
     if not ass_path.exists():
         render.build_ass(captions, ass_path)
     t0 = time.time()
-    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out)
+    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out, crop_cx=args.crop_cx)
     thumb = Path(args.out).with_suffix(".jpg")
     render.thumbnail(args.video, seg.start_ms, thumb)
     size_mb = Path(out).stat().st_size / 1024 / 1024
@@ -138,10 +160,13 @@ def main():
     p = argparse.ArgumentParser(prog="poc.pipeline")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    s = sub.add_parser("stt", help="Whisper 로컬 STT")
+    s = sub.add_parser("stt", help="STT (whisper 로컬 / google 클라우드)")
     s.add_argument("--video", required=True)
     s.add_argument("--out", required=True)
-    s.add_argument("--model", default="large-v3")
+    s.add_argument("--engine", choices=["whisper", "google"], default="whisper")
+    s.add_argument("--model", default=None, help="whisper: large-v3(기본)/small 등, google: chirp_3(기본)/long 등")
+    s.add_argument("--device", choices=["auto", "cpu"], default="auto", help="whisper 전용")
+    s.add_argument("--terms", help="상품 용어 목록 JSON — 제품명·용어를 STT 힌트로 주입")
     s.set_defaults(fn=cmd_stt)
 
     s = sub.add_parser("p2", help="댓글 수 기반 P2 구간 탐지")
@@ -169,6 +194,7 @@ def main():
     s.add_argument("--video", required=True)
     s.add_argument("--captions", required=True, help="m2가 저장한 *_captions.json")
     s.add_argument("--out", required=True)
+    s.add_argument("--crop-cx", type=float, default=0.5, help="세로 크롭 중심 가로 위치 0~1 (기본 0.5=중앙)")
     s.set_defaults(fn=cmd_render)
 
     s = sub.add_parser("demo", help="목데이터로 전 과정 검증")

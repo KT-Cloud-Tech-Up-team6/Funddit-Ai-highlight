@@ -1,0 +1,97 @@
+{
+  "_note": "STT 발화 + 방송 화면 자막(가격 패널)에서 확인한 값. '_check'가 남은 항목만 상품 상세로 확인 필요.",
+  "product_name": "로보락 F25",
+  "terms": [
+    {
+      "surface": "로봐락",
+      "canonical": "로보락"
+    },
+    {
+      "surface": "로보라",
+      "canonical": "로보락"
+    },
+    {
+      "surface": "로보라기",
+      "canonical": "로보락이"
+    },
+    {
+      "surface": "에프 이십오",
+      "canonical": "F25"
+    },
+    {
+      "surface": "이만 파스타",
+      "canonical": "20,000Pa"
+    },
+    {
+      "surface": "이만 파스칼",
+      "canonical": "20,000Pa"
+    },
+    {
+      "surface": "위대한 슈픽",
+      "canonical": "위대한 쇼픽"
+    },
+    {
+      "surface": "열풍곤저",
+      "canonical": "열풍 건조"
+    },
+    {
+      "surface": "풀플렛",
+      "canonical": "풀 플랫"
+    }
+  ],
+  "specs": [
+    {
+      "name": "최대 흡입력",
+      "value": "20,000Pa",
+      "_check": "? 발화 '이만 파스타' 기준"
+    },
+    {
+      "name": "온수 세척 온도",
+      "value": "90도"
+    },
+    {
+      "name": "건조 방식",
+      "value": "열풍 건조"
+    },
+    {
+      "name": "헤드 눕힘 각도",
+      "value": "180도"
+    },
+    {
+      "name": "진입 가능 높이",
+      "value": "12.5cm"
+    },
+    {
+      "name": "머리카락 엉킴률",
+      "value": "0%"
+    },
+    {
+      "name": "정가",
+      "value": "699,000원"
+    },
+    {
+      "name": "방송 할인",
+      "value": "200,000원"
+    },
+    {
+      "name": "방송가 (모바일 구매 시)",
+      "value": "499,000원"
+    },
+    {
+      "name": "월 환산",
+      "value": "2만 원대"
+    },
+    {
+      "name": "일 환산",
+      "value": "925원"
+    },
+    {
+      "name": "공짜 찬스",
+      "value": "2명"
+    },
+    {
+      "name": "살균",
+      "value": "99.99%"
+    }
+  ]
+}

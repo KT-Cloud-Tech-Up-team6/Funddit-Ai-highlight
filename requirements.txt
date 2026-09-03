@@ -1,2 +1,9 @@
 google-genai>=1.0
-# STT 로컬 (선택): pip install faster-whisper
+
+# STT 로컬 (Whisper) — GPU는 nvidia-* 휠로 CUDA 런타임 제공 (툴킷 설치 불필요)
+faster-whisper>=1.2
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+
+# STT 클라우드 (Google Speech-to-Text v2, CFG-2/3) — 서비스 계정 키 필요
+google-cloud-speech>=2.30

@@ -14,8 +14,10 @@ def load_cues(path: str | Path) -> list[Cue]:
     return [Cue(**c) for c in data["transcript"]]
 
 
-def save_cues(cues: list[Cue], path: str | Path) -> None:
+def save_cues(cues: list[Cue], path: str | Path, meta: dict | None = None) -> None:
     data = {"transcript": [c.__dict__ for c in cues]}
+    if meta:
+        data["meta"] = meta
     Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

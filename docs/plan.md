@@ -71,7 +71,7 @@ STT 2종:
 | 후보 | 확인할 점 | 상태 |
 | --- | --- | --- |
 | Whisper large-v3 (로컬, M4 맥) | API 비용 0. 10분 처리 시간, 수치 인식 | 구현 완료 (`faster-whisper`) |
-| Google Speech-to-Text | 타임코드 정밀도, 한국어 인식 | **미구현 — STEP 3에서 추가** |
+| Google Speech-to-Text v2 (chirp_3) | 타임코드 정밀도, 한국어 인식 | 구현 완료 (`poc/stt_google.py`, 무음 경계 55초 조각 → 동기 API, GCS 불필요) — 자격증명 필요 |
 
 M1/M2 LLM 2종:
 
@@ -128,7 +128,7 @@ Vision은 일단 쓰지 않음 — 자막만으로 시연 파트를 못 찾으�
 
 | 단계 | 호출 수 | CFG-1 | CFG-2 | CFG-3 |
 | --- | --- | --- | --- | --- |
-| STT (10분) | 1 | | | |
+| STT (10분) | 1 | 0원 (Whisper large-v3 로컬, GTX 1080 추론 109초) | Google STT 실측 대기 | Google STT 실측 대기 |
 | M1 구간 분할 | 1 | | | |
 | M2 포인트 자막 | 3 | | | |
 | 렌더링 | — | 0 | 0 | 0 |
@@ -152,9 +152,9 @@ Vision은 일단 쓰지 않음 — 자막만으로 시연 파트를 못 찾으�
 | STEP | 내용 | 상태 |
 | --- | --- | --- |
 | 0 | 기초 환경 구축 (파이프라인+게이트+목데이터 검증) | ✅ 완료 2026-09-03 |
-| 1 | 10분 방송 영상 확보 · 댓글 시계열 정리 · 큐시트 작성 | ⬜ **다음** |
-| 2 | 상품 용어 목록 정리 (상품 상세에서 복사 → `data/product_terms.json` 형식) | ⬜ |
-| 3 | STT 2종 비교 — **Google STT 클라이언트 구현 필요** | ⬜ |
+| 1 | 10분 방송 영상 확보 · 댓글 시계열 정리 · 큐시트 작성 | 🔶 영상 확보 2026-09-03 (로보락 F25, KT알파쇼핑, 9분20초 → `data/input/roborock_f25.mp4`). 댓글 목데이터·큐시트는 사용자 전달 예정 |
+| 2 | 상품 용어 목록 정리 (상품 상세에서 복사 → `data/product_terms.json` 형식) | 🔶 STT 발화 기반 초안 `data/real/product_terms.json` — 상품 상세로 값 확인 필요 |
+| 3 | STT 2종 비교 | 🔶 Whisper small/large-v3 실행(GPU). Google STT v2 클라이언트 구현 완료(`poc/stt_google.py`) — 서비스 계정 키 대기 |
 | 4 | M1 구간 분할 (LLM 2종) | ⬜ |
 | 5 | 체크리스트 판정 (⚙ 자동 + 👁 육안) | ⬜ |
 | 6 | 후보 3개 골라 M2 실행 | ⬜ |
@@ -167,7 +167,7 @@ Vision은 일단 쓰지 않음 — 자막만으로 시연 파트를 못 찾으�
 
 | 문제 | 대응 | 상태 |
 | --- | --- | --- |
-| STT가 제품명·숫자를 틀리게 받아씀 | 상품 용어 목록으로 후처리 치환 (`terms[].surface→canonical`) | 데이터 형식만 준비, 치환 코드 미구현 |
+| STT가 제품명·숫자를 틀리게 받아씀 | ① 용어 목록을 STT 힌트로 주입 (Whisper initial_prompt / Google phrase boost, `--terms`) ② 후처리 치환 (`terms[].surface→canonical`) | ① 구현됨, ② 치환 코드 미구현 |
 | Whisper가 무음 구간에 없는 말을 만듦 | VAD 적용 (`vad_filter=True` 기본값) | 구현됨 |
 | 모델이 없는 시각을 만듦 | M1·M2 모두 cue_id만 지정 (개정①) | 구조적 차단 완료 |
 | 구간이 60초 미만 | 프롬프트 규칙 3으로 확장 | — |

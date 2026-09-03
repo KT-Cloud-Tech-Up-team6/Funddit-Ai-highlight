@@ -14,7 +14,7 @@ WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Point,Malgun Gothic,76,&H00FFFFFF,&H00FFFFFF,&H00000000,&H7F000000,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,260,1
+Style: Point,Malgun Gothic,76,&H00FFFFFF,&H00FFFFFF,&H00000000,&H7F000000,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,380,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -52,17 +52,22 @@ def render_short(
     end_ms: int,
     ass_path: str | Path,
     out_path: str | Path,
+    crop_cx: float = 0.5,
 ) -> Path:
     """구간 컷 + 세로 크롭 + 자막 번인. -ss가 -i 앞이라 출력 타임스탬프는 0부터 시작
-    → ASS의 쇼츠 로컬 시각과 일치한다."""
+    → ASS의 쇼츠 로컬 시각과 일치한다.
+    crop_cx: 크롭 창 중심의 가로 위치(0~1). 0.5=중앙 고정. 방송 화면 왼쪽에 가격 패널이 붙어
+    진행자·제품이 오른쪽으로 치우친 경우 0.6~0.7로 조정 (계획서 7번 "문제 있으면 추적 크롭 검토")."""
     video, ass_path, out_path = Path(video).resolve(), Path(ass_path).resolve(), Path(out_path).resolve()
+    # 크롭 창 x = 중심 - 창너비/2, 화면 밖으로 안 나가게 clip
+    crop_x = f"clip(iw*{crop_cx:.4f}-ih*9/32\\,0\\,iw-ih*9/16)"  # 쉼표는 필터 구분자라 이스케이프
     # Windows 드라이브 콜론 이스케이프 문제를 피하려고 ASS 파일이 있는 폴더에서 실행
     cmd = [
         "ffmpeg", "-y",
         "-ss", f"{start_ms/1000:.3f}",
         "-to", f"{end_ms/1000:.3f}",
         "-i", str(video),
-        "-vf", f"crop=ih*9/16:ih,scale=1080:1920,ass={ass_path.name}",
+        "-vf", f"crop=ih*9/16:ih:{crop_x}:0,scale=1080:1920,ass={ass_path.name}",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
         "-c:a", "aac", "-movflags", "+faststart",
         str(out_path),
