@@ -1,0 +1,94 @@
+"""M2 — 포인트 자막 생성 + 코드 게이트 + 표시 타이밍 계산.
+
+모델은 source_cue_id만 지정한다. 표시 시각(쇼츠 로컬 기준)·길이·겹침 해소는
+전부 여기(코드)서 처리한다 — 시각 환각을 구조적으로 차단.
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import asdict
+from pathlib import Path
+
+from poc.gates import validate_captions
+from poc.llm import LLM
+from poc.models import Caption, Cue, Segment, Violation
+from poc.prompts import M2_PROMPT
+from poc.transcript import cues_in_range
+
+MIN_SHOW_MS = 1_500
+MAX_SHOW_MS = 4_000
+
+
+def assign_timing(captions: list[Caption], cues: list[Cue], seg_start_ms: int) -> list[Caption]:
+    """표시 시각을 쇼츠 로컬 타임라인(구간 시작 = 0) 기준으로 계산한다."""
+    idx = {c.cue_id: c for c in cues}
+    caps = [c for c in captions if c.source_cue_id in idx]
+    caps.sort(key=lambda c: idx[c.source_cue_id].start_ms)
+    for c in caps:
+        cue = idx[c.source_cue_id]
+        c.start_ms = cue.start_ms - seg_start_ms
+        show = max(MIN_SHOW_MS, min(MAX_SHOW_MS, cue.end_ms - cue.start_ms))
+        c.end_ms = c.start_ms + show
+    # 겹치면 앞 자막을 뒤 자막 시작에 맞춰 자른다 (최소 500ms는 보장)
+    for a, b in zip(caps, caps[1:]):
+        if a.end_ms > b.start_ms:
+            a.end_ms = max(a.start_ms + 500, b.start_ms)
+    return caps
+
+
+def run_m2(
+    segment: Segment,
+    all_cues: list[Cue],
+    terms: dict,
+    llm: LLM,
+    out_path: str | Path | None = None,
+) -> tuple[list[Caption], list[Violation]]:
+    seg_cues = cues_in_range(all_cues, segment.start_cue_id, segment.end_cue_id)
+    payload = {
+        "part_type": segment.part_type,
+        "label": segment.label,
+        "transcript": [
+            {"cue_id": c.cue_id, "text": c.text} for c in seg_cues
+        ],
+        "product_terms": terms,
+    }
+    raw = llm.generate_json(M2_PROMPT, payload)
+
+    captions: list[Caption] = []
+    for c in raw.get("captions", []):
+        captions.append(
+            Caption(
+                text=c.get("text", ""),
+                source_cue_id=c.get("source_cue_id", ""),
+                emphasis=c.get("emphasis", ""),
+                source_text=c.get("source_text", ""),
+            )
+        )
+
+    violations = validate_captions(segment, captions, all_cues, terms)
+    # ERROR가 붙은 자막(숫자 환각·근거 없음)은 렌더링에서 제외
+    bad_idx = {
+        int(v.message.split("[")[1].split("]")[0])
+        for v in violations
+        if v.level == "ERROR" and v.message.startswith("captions[")
+    } if any(v.level == "ERROR" for v in violations) else set()
+    kept = [c for i, c in enumerate(captions) if i not in bad_idx]
+
+    kept = assign_timing(kept, all_cues, segment.start_ms)
+
+    if out_path:
+        result = {
+            "segment": asdict(segment),
+            "captions": [asdict(c) for c in kept],
+            "dropped": len(captions) - len(kept),
+            "violations": [asdict(v) for v in violations],
+        }
+        Path(out_path).write_text(
+            json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    return kept, violations
+
+
+def load_captions(path: str | Path) -> tuple[Segment, list[Caption]]:
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return Segment(**data["segment"]), [Caption(**c) for c in data["captions"]]

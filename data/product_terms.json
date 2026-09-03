@@ -1,0 +1,18 @@
+{
+  "product_name": "로보락 F25 ACE",
+  "terms": [
+    { "surface": "에프 이십오", "canonical": "F25 ACE" },
+    { "surface": "만 파스칼", "canonical": "10,000Pa" },
+    { "surface": "물걸레 자동세척", "canonical": "물걸레 자동 세척" }
+  ],
+  "specs": [
+    { "name": "최대 흡입력", "value": "10,000Pa" },
+    { "name": "사용 시간", "value": "60분" },
+    { "name": "본체 무게", "value": "4.3kg" },
+    { "name": "정가", "value": "499,000원" },
+    { "name": "얼리버드 펀딩가", "value": "399,000원" },
+    { "name": "무상 AS", "value": "2년" },
+    { "name": "필터 교체 주기", "value": "6개월" },
+    { "name": "얼리버드 한정 수량", "value": "300대" }
+  ]
+}

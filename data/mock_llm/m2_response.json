@@ -1,0 +1,28 @@
+{
+  "captions": [
+    {
+      "text": "먼지 그대로 흡입",
+      "source_cue_id": "t_026",
+      "emphasis": "result",
+      "source_text": "지나가기만 해도 먼지가 그대로 빨려 들어갑니다."
+    },
+    {
+      "text": "카펫 감지 자동 출력 UP",
+      "source_cue_id": "t_029",
+      "emphasis": "feature",
+      "source_text": "출력이 자동으로 올라가죠?"
+    },
+    {
+      "text": "최대 흡입력 10,000Pa",
+      "source_cue_id": "t_030",
+      "emphasis": "spec",
+      "source_text": "지금 최대 만 파스칼까지 올라간 상태입니다."
+    },
+    {
+      "text": "꽂으면 온수 세척 시작",
+      "source_cue_id": "t_033",
+      "emphasis": "feature",
+      "source_text": "거치대에 꽂으면 온수 세척이 바로 시작됩니다."
+    }
+  ]
+}

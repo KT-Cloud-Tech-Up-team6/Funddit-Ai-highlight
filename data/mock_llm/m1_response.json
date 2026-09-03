@@ -1,0 +1,32 @@
+{
+  "segments": [
+    {
+      "part_type": "P1",
+      "start_cue_id": "t_023",
+      "end_cue_id": "t_034",
+      "label": "카펫 자동 출력 시연",
+      "evidence": ["이번에는 카펫 위로 한번 올려볼게요.", "출력이 자동으로 올라가죠?"]
+    },
+    {
+      "part_type": "P3",
+      "start_cue_id": "t_044",
+      "end_cue_id": "t_051",
+      "label": "얼리버드 10만원 할인",
+      "evidence": ["그런데 오늘 얼리버드 펀딩가는 삼십구만 구천 원입니다."]
+    },
+    {
+      "part_type": "P4",
+      "start_cue_id": "t_013",
+      "end_cue_id": "t_021",
+      "label": "흡입력 10,000Pa",
+      "evidence": ["먼저 흡입력은 최대 만 파스칼까지 지원합니다."]
+    },
+    {
+      "part_type": "P5",
+      "start_cue_id": "t_005",
+      "end_cue_id": "t_012",
+      "label": "손목 통증에서 시작",
+      "evidence": ["기존 물걸레 청소기를 쓰면서 손목이 너무 아팠어요."]
+    }
+  ]
+}
