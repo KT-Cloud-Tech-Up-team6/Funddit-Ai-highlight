@@ -134,6 +134,23 @@ python -m eval.bench_llm --models gemini-2.5-flash-lite,gemini-3.1-flash-lite,ge
 `poc/llm.py`는 `claude-*`/`gpt-*` 접두사 라우팅도 갖고 있어 필요해지면 키만 넣으면 바로 붙는다.
 주의: Gemini 무료 등급 키는 `gemini-3.1-pro-preview` 호출 한도가 0이라 pro 비교엔 유료 키가 필요하다.
 
+## 비용 산출
+
+PoC / 개발 / 운영 세 국면으로 나눠 계산한다. 실측 사용량 로그(`out/real/llm_usage.jsonl`)와 STT 메타에서 뽑는다.
+
+```powershell
+python -m eval.cost_report                                   # 월 100건 기준
+python -m eval.cost_report --broadcasts-per-month 300 --shorts-per-month 900
+```
+
+| 국면 | 정의 | 성격 |
+| --- | --- | --- |
+| PoC | 모델 비교·재실행·시행착오 실측 합계 | 한 번 쓰고 끝나는 돈 |
+| 개발 | PoC 1사이클 × 튜닝 반복 횟수 | 제품화 기간에만 |
+| 운영 | 방송 1건 단가(M1 1회 + M2 3회 + STT) × 월 물량 | 매달 나가는 돈 |
+
+결과는 `eval/results/cost_report_<시각>.md`. 환율·인프라 단가 가정은 [eval/cost_report.py](eval/cost_report.py) 상단 상수에서 조정한다.
+
 ## 구조
 
 | 경로 | 역할 |
