@@ -17,6 +17,35 @@ from poc.models import (
 )
 from poc.numbers import extract_numbers
 
+# evidence 인용 판정 기준 — 완전 일치가 아닐 때 유사도로 나눈다
+EVIDENCE_OK_RATIO = 0.90    # 이 이상이면 전사 실수로 보고 통과
+EVIDENCE_WARN_RATIO = 0.75  # 이 이상이면 WARN, 미만이면 ERROR(환각)
+
+
+def _best_evidence_ratio(ev: str, transcript_text: str) -> float:
+    """evidence와 가장 비슷한 자막 구간의 유사도(0~1). 완전 일치면 1.0."""
+    from difflib import SequenceMatcher
+
+    ev = ev.strip()
+    if not ev:
+        return 0.0
+    if ev in transcript_text:
+        return 1.0
+    lines = transcript_text.split(chr(10))
+    best = 0.0
+    for i in range(len(lines)):
+        for span in (1, 2, 3):
+            if i + span > len(lines):
+                break
+            chunk = " ".join(lines[i:i + span])
+            if abs(len(chunk) - len(ev)) > max(len(ev), 20):
+                continue
+            best = max(best, SequenceMatcher(None, ev, chunk).ratio())
+            if best >= 0.99:
+                return best
+    return best
+
+
 SEG_MIN_MS = 60_000
 SEG_MAX_MS = 120_000
 SEG_MAX_GAP_MS = 10_000  # 구간 내 허용 무발화 갭
@@ -95,8 +124,12 @@ def validate_segments(segments: list[Segment], cues: list[Cue],
         if not s.evidence:
             v.append(Violation("ERROR", "SEG_NO_EVIDENCE", f"{ref}: evidence 없음"))
         for ev in s.evidence:
-            if ev.strip() not in transcript_text:
-                v.append(Violation("ERROR", "SEG_EVIDENCE_FAKE", f"{ref}: 자막에 없는 evidence — {ev!r}"))
+            ratio = _best_evidence_ratio(ev, transcript_text)
+            if ratio >= EVIDENCE_OK_RATIO:
+                continue  # 완전 일치이거나 글자 몇 개 차이 — 전사 실수로 본다
+            level = "WARN" if ratio >= EVIDENCE_WARN_RATIO else "ERROR"
+            v.append(Violation(level, "SEG_EVIDENCE_FAKE",
+                               f"{ref}: 자막과 다른 evidence (유사도 {ratio:.2f}) — {ev!r}"))
 
     timed.sort()
     for (s1, e1, r1), (s2, e2, r2) in zip(timed, timed[1:]):
@@ -141,7 +174,7 @@ def validate_captions(
             v.append(Violation("WARN", "CAP_EMPHASIS", f"{ref}: 알 수 없는 emphasis {c.emphasis!r}"))
 
         # 숫자 환각 게이트 — 자막의 모든 숫자는 근거 발화 또는 상품 용어 목록에 있어야 한다
-        need = extract_numbers(c.text)
+        need = extract_numbers(c.text, strict=True)  # 자막 쪽 오탐은 정상 자막을 차단하므로 엄격하게
         allowed = extract_numbers(cue.text) | terms_numbers
         missing = need - allowed
         if missing:

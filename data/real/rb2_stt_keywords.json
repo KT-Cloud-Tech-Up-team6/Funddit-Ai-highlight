@@ -1,0 +1,23 @@
+{
+  "_note": "로보락 F25 20분 방송 STT 채점용. 방송 화면 자막에서 확인한 값 기준.",
+  "keywords": [
+    { "key": "로보락(브랜드)", "variants": ["로보락"], "min_count": 8, "wrong": ["로봐락", "로보라기"] },
+    { "key": "F25(모델명)", "variants": ["F25", "에프25", "에프 25"], "min_count": 5 },
+    { "key": "20,000Pa(흡입력)", "variants": ["20,000Pa", "2만 파스칼", "이만 파스칼", "2만 파스칼", "20000Pa"], "min_count": 1 },
+    { "key": "90도(세척/건조)", "variants": ["90도"], "min_count": 5 },
+    { "key": "0%(머리카락 엉킴)", "variants": ["0%", "제로"], "min_count": 3 },
+    { "key": "99.9%(살균)", "variants": ["99.9", "99.99"], "min_count": 1 },
+    { "key": "180도(플랫)", "variants": ["180도"], "min_count": 1 },
+    { "key": "20만 원(할인)", "variants": ["20만 원", "20만원", "이십만"], "min_count": 5 },
+    { "key": "40만 원대(방송가)", "variants": ["40만 원대", "40만원대"], "min_count": 2 },
+    { "key": "69만 9천 원(정가)", "variants": ["69만 9천", "699,000", "70만 원"], "min_count": 1 },
+    { "key": "27,723원(월 할부)", "variants": ["27,723", "2만 7천", "27723"], "min_count": 1 },
+    { "key": "925원(일 환산)", "variants": ["925원", "925 원"], "min_count": 1 },
+    { "key": "18개월(무이자)", "variants": ["18개월", "십팔개월"], "min_count": 1 },
+    { "key": "열풍 건조", "variants": ["열풍 건조", "열풍건조"], "min_count": 2 },
+    { "key": "위대한 쇼픽(프로그램)", "variants": ["쇼픽"], "min_count": 3 },
+    { "key": "백화점 판매 동일", "variants": ["백화점"], "min_count": 2 },
+    { "key": "공짜 찬스", "variants": ["공짜 찬스", "공짜찬스"], "min_count": 2 },
+    { "key": "물걸레", "variants": ["물걸레"], "min_count": 5 }
+  ]
+}

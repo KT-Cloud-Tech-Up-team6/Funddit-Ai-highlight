@@ -1,0 +1,33 @@
+{
+  "_note": "로보락 F25 (20분 방송, KT알파쇼핑 위대한 쇼픽). 방송 화면 자막에서 직접 읽은 값 — 추정 없음.",
+  "product_name": "로보락 F25",
+  "terms": [
+    { "surface": "로봐락", "canonical": "로보락" },
+    { "surface": "로보라", "canonical": "로보락" },
+    { "surface": "로보라기", "canonical": "로보락이" },
+    { "surface": "에프 이십오", "canonical": "F25" },
+    { "surface": "이만 파스칼", "canonical": "20,000Pa" },
+    { "surface": "이만 파스타", "canonical": "20,000Pa" },
+    { "surface": "위대한 슈픽", "canonical": "위대한 쇼픽" },
+    { "surface": "위대한 쇼핑", "canonical": "위대한 쇼픽" },
+    { "surface": "열풍곤저", "canonical": "열풍 건조" },
+    { "surface": "풀플렛", "canonical": "풀 플랫" }
+  ],
+  "specs": [
+    { "name": "제품명", "value": "로보락 F25 (습건식 청소기)" },
+    { "name": "출시", "value": "25년 3월 최신상" },
+    { "name": "최대 흡입력", "value": "20,000Pa" },
+    { "name": "머리카락 엉킴", "value": "0% (SGS 테스트 완료)" },
+    { "name": "세척·건조 온도", "value": "90도" },
+    { "name": "살균력", "value": "99.9%" },
+    { "name": "기능", "value": "물걸레 + 세척·건조 동시" },
+    { "name": "정가", "value": "699,000원" },
+    { "name": "방송가 (모바일 구매 시)", "value": "499,000원" },
+    { "name": "방송 할인", "value": "200,000원" },
+    { "name": "무이자 할부", "value": "18개월" },
+    { "name": "월 할부금", "value": "27,723원" },
+    { "name": "일 환산", "value": "925원" },
+    { "name": "특별 사은품", "value": "41,584원 상당" },
+    { "name": "판매 채널", "value": "백화점 판매 동일 모델" }
+  ]
+}

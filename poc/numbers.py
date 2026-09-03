@@ -54,16 +54,27 @@ def parse_korean_number(s: str) -> float | None:
     return float(total + section + cur)
 
 
-def extract_numbers(text: str) -> set[float]:
-    """텍스트에서 숫자값 집합 추출 (아라비아 숫자 + 한글 수사)."""
+# 한글 수사 뒤에 이런 단위가 붙어야 '진짜 수치'로 본다 (strict 모드).
+# "없이"의 '이', "이번"의 '이'처럼 일상어에서 잘못 뽑히는 것을 막는다.
+_UNIT_AFTER = r"(?:\s*(?:원|번|개|분|초|시간|일|년|월|명|대|장|도|배|퍼센트|프로|만|천|억|단계|등급|kg|g|cm|mm|Pa|파스칼|Hz|헤르츠|%))"
+
+
+def extract_numbers(text: str, strict: bool = False) -> set[float]:
+    """텍스트에서 숫자값 집합 추출 (아라비아 숫자 + 한글 수사).
+
+    strict=True면 한글 수사는 뒤에 단위가 붙은 경우만 인정한다.
+    자막처럼 "이 숫자가 근거에 있어야 한다"고 검사받는 쪽에 쓴다 —
+    오탐이 나면 정상 자막이 환각으로 차단되기 때문."""
     found: set[float] = set()
     for m in re.finditer(_DIGIT_RUN, text):
         try:
             found.add(float(m.group().replace(",", "")))
         except ValueError:
             pass
-    for m in re.finditer(_KOR_RUN, text):
-        v = parse_korean_number(m.group())
+    pattern = _KOR_RUN + _UNIT_AFTER if strict else _KOR_RUN
+    for m in re.finditer(pattern, text):
+        run = re.match(_KOR_RUN, m.group()).group() if strict else m.group()
+        v = parse_korean_number(run)
         if v is not None:
             found.add(v)
     return found

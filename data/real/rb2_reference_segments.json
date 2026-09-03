@@ -1,0 +1,17 @@
+{
+  "_note": "로보락 F25 20분 방송 기준 구간 (Whisper large-v3 자막 기준 사람 라벨 초안).",
+  "transcript": "out/real/rb2_transcript_large.json",
+  "parts": {
+    "P1": { "expected": true, "alternatives": [
+      { "start_ms": 255000, "end_ms": 395000, "desc": "고추기름·부스러기 오염 청소 시연 — 진공+물걸레 동시" },
+      { "start_ms": 457000, "end_ms": 514000, "desc": "머리카락 엉킴 0% 시연, 걸름망 분리" },
+      { "start_ms": 514000, "end_ms": 613000, "desc": "자동 세척 버튼 → 90도 온수 세척 → 열풍 건조 시연" } ] },
+    "P3": { "expected": true, "alternatives": [
+      { "start_ms": 153700, "end_ms": 206200, "desc": "백화점 동일 모델, 20만원 즉시 할인, 40만원대, 공짜 찬스" },
+      { "start_ms": 623000, "end_ms": 700000, "desc": "최신상 20만원 할인, 40만원대, 공짜 찬스 2명" } ] },
+    "P4": { "expected": true, "alternatives": [
+      { "start_ms": 206200, "end_ms": 255000, "desc": "2만 파스칼 흡입력, 엉킴 0%, 90도 세척·건조, 살균" },
+      { "start_ms": 425000, "end_ms": 457000, "desc": "180도 풀플랫, 침대·소파 밑 진입" } ] },
+    "P5": { "expected": false, "alternatives": [] }
+  }
+}
