@@ -1,0 +1,16 @@
+{
+  "_note": "올리고365 방송 기준 구간 (Whisper large-v3 자막 기준 사람 라벨 초안). expected=false는 이 방송에 없는 파트.",
+  "transcript": "out/real/v2_transcript_large.json",
+  "parts": {
+    "P1": { "expected": true, "alternatives": [
+      { "start_ms": 18900, "end_ms": 105900, "desc": "발 올리는 시연 + 고주파/심부열 원리 + 강도 10단계·30분 설명" },
+      { "start_ms": 272500, "end_ms": 315400, "desc": "기기에 양발 올리는 시연, 고주파 에너지·47만 진동 설명" } ] },
+    "P3": { "expected": true, "alternatives": [
+      { "start_ms": 127400, "end_ms": 170200, "desc": "3일 무료체험 + 현금 70만원 추첨 + 순금 18.75g 7명" },
+      { "start_ms": 385900, "end_ms": 443100, "desc": "번호만 남기면 3일 무료체험, 올리고 마스터 방문" } ] },
+    "P4": { "expected": true, "alternatives": [
+      { "start_ms": 83000, "end_ms": 124700, "desc": "강도 1~10단계, 1회 30분, 국내 생산, 의료기기 3등급" },
+      { "start_ms": 266100, "end_ms": 304200, "desc": "고주파 원리, 1초당 47만 번 진동, 심부열" } ] },
+    "P5": { "expected": false, "alternatives": [] }
+  }
+}

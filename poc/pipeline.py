@@ -75,12 +75,13 @@ def cmd_m1(args):
     cues = load_cues(args.transcript)
     cuesheet = _load_json(args.cuesheet) if args.cuesheet else []
     llm = LLM(mock_file=DATA / "mock_llm" / "m1_response.json" if args.mock else None, tag="m1")
-    motion = None
+    motion = cuts = None
     if args.motion:
         from poc import motion as motion_mod
 
-        motion = motion_mod.load(args.motion)
-    segments, violations = m1_segments.run_m1(cues, cuesheet, llm, out_path=args.out, motion=motion)
+        motion, cuts = motion_mod.load_full(args.motion)
+    segments, violations = m1_segments.run_m1(cues, cuesheet, llm, out_path=args.out,
+                                              motion=motion, cuts=cuts)
     print(f"M1 완료 ({llm.model}): 구간 {len(segments)}개 → {args.out}")
     for sg in segments:
         dur = (sg.end_ms - sg.start_ms) / 1000 if sg.end_ms else 0

@@ -1,0 +1,22 @@
+{
+  "_note": "올리고365(ALLYGO 365) STT 정량 채점용. 방송 화면 자막·발화에서 확인한 값.",
+  "keywords": [
+    { "key": "올리고365(제품명)", "variants": ["올리고 365", "올리고365", "올리고삼육오", "ALLYGO"], "min_count": 8, "wrong": ["얼리고", "알리고 3", "올리고 삼육호"] },
+    { "key": "고주파", "variants": ["고주파"], "min_count": 3 },
+    { "key": "심부열", "variants": ["심부열"], "min_count": 3 },
+    { "key": "47만(진동수)", "variants": ["47만", "사십칠만"], "min_count": 1 },
+    { "key": "3일 무료체험", "variants": ["3일", "삼일"], "min_count": 2 },
+    { "key": "30분(사용시간)", "variants": ["30분", "삼십분"], "min_count": 2 },
+    { "key": "10단계(강도)", "variants": ["10단계", "십단계"], "min_count": 1 },
+    { "key": "300억(매출)", "variants": ["300억", "삼백억"], "min_count": 2 },
+    { "key": "70만 원(추첨)", "variants": ["70만 원", "70만원", "칠십만"], "min_count": 1 },
+    { "key": "18.75g(금)", "variants": ["18.75", "18.75g"], "min_count": 1 },
+    { "key": "식약처", "variants": ["식약처", "시각처"], "min_count": 1 },
+    { "key": "의료기기", "variants": ["의료기기", "의교기기"], "min_count": 4 },
+    { "key": "3등급", "variants": ["3등급", "삼등급"], "min_count": 1 },
+    { "key": "통증 완화", "variants": ["통증 완화", "통증완화"], "min_count": 5 },
+    { "key": "NS홈쇼핑", "variants": ["NS홈쇼핑", "엔에스홈쇼핑"], "min_count": 1 },
+    { "key": "무료 체험", "variants": ["무료 체험", "무료체험"], "min_count": 4 },
+    { "key": "렌탈", "variants": ["렌탈", "렌털"], "min_count": 1 }
+  ]
+}
