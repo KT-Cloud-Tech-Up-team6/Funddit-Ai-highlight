@@ -1,0 +1,1256 @@
+{
+ "runs": [
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 1,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:10",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 1254,
+   "thinking_tokens": 0,
+   "elapsed_sec": 7.0,
+   "est_usd": 0.00089,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     15400,
+     113380
+    ],
+    "P3": [
+     209680,
+     240960
+    ],
+    "P4": [
+     113880,
+     193340
+    ]
+   },
+   "recall": 1.0,
+   "iou": 0.32950191570881227,
+   "iou_by_part": {
+    "P1": 0.0,
+    "P3": 0.9885057471264368,
+    "P4": 0.0
+   },
+   "len_ok": 0.6666666666666666,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 1,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "흡입력 및 관리 시연",
+     "start_ms": 15400,
+     "end_ms": 113380
+    },
+    {
+     "part": "P3",
+     "label": "방송 한정 할인 혜택",
+     "start_ms": 209680,
+     "end_ms": 240960
+    },
+    {
+     "part": "P4",
+     "label": "자동 세척 및 열풍 건조",
+     "start_ms": 113880,
+     "end_ms": 193340
+    }
+   ],
+   "score": 0.749
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:17",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 335,
+   "thinking_tokens": 0,
+   "elapsed_sec": 7.1,
+   "est_usd": 0.00025,
+   "n_captions": 5,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "열풍 건조 기능",
+    "뽀송한 건조 완료",
+    "냄새 걱정 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:23:22",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 295,
+   "thinking_tokens": 0,
+   "elapsed_sec": 4.7,
+   "est_usd": 0.00019,
+   "n_captions": 4,
+   "captions": [
+    "방송 한정 20만 원 할인",
+    "모바일 즉시 할인",
+    "방송가 499,000원",
+    "공짜 찬스 2명"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:23:25",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 411,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.4,
+   "est_usd": 0.00026,
+   "n_captions": 5,
+   "captions": [
+    "최대 흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 높이 12.5cm",
+    "머리카락 엉킴 0%",
+    "간편한 먼지 처리"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 2,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:30",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 1265,
+   "thinking_tokens": 0,
+   "elapsed_sec": 5.4,
+   "est_usd": 0.00089,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     15400,
+     113380
+    ],
+    "P3": [
+     209680,
+     240960
+    ]
+   },
+   "recall": 0.6666666666666666,
+   "iou": 0.4942528735632184,
+   "iou_by_part": {
+    "P1": 0.0,
+    "P3": 0.9885057471264368
+   },
+   "len_ok": 0.6666666666666666,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 5,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "흡입력 및 머리카락 엉킴 제로 시연",
+     "start_ms": 15400,
+     "end_ms": 113380
+    },
+    {
+     "part": "P1",
+     "label": "자동 온수 세척 및 열풍 건조 시연",
+     "start_ms": 113880,
+     "end_ms": 193340
+    },
+    {
+     "part": "P3",
+     "label": "방송 한정 20만 원 할인 및 혜택",
+     "start_ms": 209680,
+     "end_ms": 240960
+    }
+   ],
+   "score": 0.682
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:37",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 335,
+   "thinking_tokens": 0,
+   "elapsed_sec": 6.5,
+   "est_usd": 0.00025,
+   "n_captions": 5,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "열풍 건조 가능",
+    "뽀송한 건조 완료",
+    "냄새 걱정 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:23:41",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 297,
+   "thinking_tokens": 0,
+   "elapsed_sec": 4.4,
+   "est_usd": 0.00019,
+   "n_captions": 4,
+   "captions": [
+    "방송 한정 20만 원 할인",
+    "모바일 즉시 할인",
+    "방송가 499,000원",
+    "공짜 찬스 2명 추첨"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:23:44",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 373,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.7,
+   "est_usd": 0.00025,
+   "n_captions": 5,
+   "captions": [
+    "최대 흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 높이 12.5cm",
+    "머리카락 엉킴 0%",
+    "간편한 먼지 처리"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 3,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:49",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 1093,
+   "thinking_tokens": 0,
+   "elapsed_sec": 5.1,
+   "est_usd": 0.00084,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     15400,
+     113380
+    ],
+    "P3": [
+     209680,
+     240960
+    ]
+   },
+   "recall": 0.6666666666666666,
+   "iou": 0.4942528735632184,
+   "iou_by_part": {
+    "P1": 0.0,
+    "P3": 0.9885057471264368
+   },
+   "len_ok": 0.3333333333333333,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 3,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "흡입력 및 관리 시연",
+     "start_ms": 15400,
+     "end_ms": 113380
+    },
+    {
+     "part": "P3",
+     "label": "방송 한정 할인 혜택",
+     "start_ms": 209680,
+     "end_ms": 240960
+    },
+    {
+     "part": "P1",
+     "label": "세척 및 건조 시연",
+     "start_ms": 342920,
+     "end_ms": 380580
+    }
+   ],
+   "score": 0.632
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:23:52",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 269,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.4,
+   "est_usd": 0.00023,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "90도 열풍 건조",
+    "냄새 걱정 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:23:56",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 295,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.8,
+   "est_usd": 0.00019,
+   "n_captions": 4,
+   "captions": [
+    "방송 한정 20만 원 할인",
+    "모바일 즉시 할인",
+    "방송가 499,000원",
+    "공짜 찬스 2명"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.1-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:24:01",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 411,
+   "thinking_tokens": 0,
+   "elapsed_sec": 4.5,
+   "est_usd": 0.00026,
+   "n_captions": 5,
+   "captions": [
+    "최대 흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 높이 12.5cm",
+    "머리카락 엉킴 0%",
+    "간편한 먼지 처리"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:04",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 720,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.4,
+   "est_usd": 0.00097,
+   "n_segments": 2,
+   "found": {
+    "P4": [
+     113880,
+     193340
+    ],
+    "P3": [
+     209680,
+     240960
+    ]
+   },
+   "recall": 0.6666666666666666,
+   "iou": 0.4942528735632184,
+   "iou_by_part": {
+    "P4": 0.0,
+    "P3": 0.9885057471264368
+   },
+   "len_ok": 0.5,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 1,
+   "segments": [
+    {
+     "part": "P4",
+     "label": "자동 세척 및 열풍 건조",
+     "start_ms": 113880,
+     "end_ms": 193340
+    },
+    {
+     "part": "P3",
+     "label": "방송 20만 원 즉시 할인",
+     "start_ms": 209680,
+     "end_ms": 240960
+    }
+   ],
+   "score": 0.657
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:07",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 321,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.4,
+   "est_usd": 0.00033,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "90도 열풍건조",
+    "열풍 건조로 냄새 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:24:09",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 550,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.8,
+   "est_usd": 0.00036,
+   "n_captions": 5,
+   "captions": [
+    "방송 한정 20만 원 할인",
+    "모바일 즉시 할인",
+    "40만 원대 특가",
+    "공짜 찬스 2명",
+    "위대한 쇼핑 특전"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:24:12",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 450,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.8,
+   "est_usd": 0.00036,
+   "n_captions": 4,
+   "captions": [
+    "흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "12.5cm 진입",
+    "머리카락 엉킴률 0%"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 2,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:16",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 720,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.5,
+   "est_usd": 0.00097,
+   "n_segments": 2,
+   "found": {
+    "P4": [
+     113880,
+     193340
+    ],
+    "P3": [
+     209680,
+     240960
+    ]
+   },
+   "recall": 0.6666666666666666,
+   "iou": 0.4942528735632184,
+   "iou_by_part": {
+    "P4": 0.0,
+    "P3": 0.9885057471264368
+   },
+   "len_ok": 0.5,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 1,
+   "segments": [
+    {
+     "part": "P4",
+     "label": "자동 세척 및 열풍 건조",
+     "start_ms": 113880,
+     "end_ms": 193340
+    },
+    {
+     "part": "P3",
+     "label": "방송 한정 20만 원 할인",
+     "start_ms": 209680,
+     "end_ms": 240960
+    }
+   ],
+   "score": 0.657
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:18",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 321,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.3,
+   "est_usd": 0.00033,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "90도 열풍건조",
+    "열풍 건조로 냄새 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:24:21",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 550,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.6,
+   "est_usd": 0.00036,
+   "n_captions": 5,
+   "captions": [
+    "방송 한정 20만 원 할인",
+    "모바일 즉시 할인",
+    "40만 원대 특가",
+    "공짜 찬스 2명",
+    "위대한 쇼핑 특전"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 2,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:24:23",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 454,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.7,
+   "est_usd": 0.00036,
+   "n_captions": 4,
+   "captions": [
+    "최대 흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 가능 12.5cm",
+    "머리카락 엉킴률 0%"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 3,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:26",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 646,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.3,
+   "est_usd": 0.00094,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     163700,
+     193340
+    ],
+    "P3": [
+     209680,
+     240960
+    ],
+    "P4": [
+     447650,
+     471210
+    ]
+   },
+   "recall": 1.0,
+   "iou": 0.6287519157088123,
+   "iou_by_part": {
+    "P1": 0.30875,
+    "P3": 0.9885057471264368,
+    "P4": 0.589
+   },
+   "len_ok": 0.0,
+   "gap_free": 1.0,
+   "fp": 0,
+   "err": 0,
+   "warn": 3,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "열풍 건조 시연",
+     "start_ms": 163700,
+     "end_ms": 193340
+    },
+    {
+     "part": "P3",
+     "label": "20만원 즉시할인",
+     "start_ms": 209680,
+     "end_ms": 240960
+    },
+    {
+     "part": "P4",
+     "label": "온수 자동세척 스펙",
+     "start_ms": 447650,
+     "end_ms": 471210
+    }
+   ],
+   "score": 0.739
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:29",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 314,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.6,
+   "est_usd": 0.00032,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "열풍 건조",
+    "냄새 걱정 해결"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조",
+    "냄새 해결"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:24:32",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 447,
+   "thinking_tokens": 0,
+   "elapsed_sec": 2.7,
+   "est_usd": 0.00032,
+   "n_captions": 4,
+   "captions": [
+    "방송 20만 원 즉시 할인",
+    "40만 원대 특가",
+    "공짜 찬스 2명 추첨",
+    "위대한 쇼핑 특전"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 3,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:24:35",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 530,
+   "thinking_tokens": 0,
+   "elapsed_sec": 3.1,
+   "est_usd": 0.00039,
+   "n_captions": 5,
+   "captions": [
+    "흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "12.5cm 진입",
+    "머리카락 엉킴률 0%",
+    "간편한 먼지통 비움"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 1,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:24:55",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 395,
+   "thinking_tokens": 6087,
+   "elapsed_sec": 20.4,
+   "est_usd": 0.01825,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     113880,
+     193340
+    ],
+    "P3": [
+     209680,
+     319100
+    ],
+    "P4": [
+     321220,
+     389540
+    ]
+   },
+   "recall": 1.0,
+   "iou": 0.3695795196397281,
+   "iou_by_part": {
+    "P1": 0.8254265501456512,
+    "P3": 0.2833120087735332,
+    "P4": 0.0
+   },
+   "len_ok": 1.0,
+   "gap_free": 0.6666666666666667,
+   "fp": 0,
+   "err": 0,
+   "warn": 1,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "자동세척 및 열풍건조 시연",
+     "start_ms": 113880,
+     "end_ms": 193340
+    },
+    {
+     "part": "P3",
+     "label": "방송 한정 할인 혜택",
+     "start_ms": 209680,
+     "end_ms": 319100
+    },
+    {
+     "part": "P4",
+     "label": "핵심 스펙 및 기능 소개",
+     "start_ms": 321220,
+     "end_ms": 389540
+    }
+   ],
+   "score": 0.778
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 1,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:25:04",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 312,
+   "thinking_tokens": 1604,
+   "elapsed_sec": 8.4,
+   "est_usd": 0.00538,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "90도 열풍 건조",
+    "열풍 건조로 해결"
+   ],
+   "coverage": 0.75,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 0.887
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 1,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:25:12",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 451,
+   "thinking_tokens": 1755,
+   "elapsed_sec": 8.6,
+   "est_usd": 0.00593,
+   "n_captions": 3,
+   "captions": [
+    "즉시 할인 200,000원",
+    "공짜 찬스 총 2명",
+    "위대한 쇼픽 특별 혜택"
+   ],
+   "coverage": 0.75,
+   "hits": [
+    "20만 원 할인",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 1,
+   "warn": 0,
+   "score": 0.688
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 1,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:25:22",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 453,
+   "thinking_tokens": 2080,
+   "elapsed_sec": 9.6,
+   "est_usd": 0.00687,
+   "n_captions": 4,
+   "captions": [
+    "흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 높이 12.5cm",
+    "머리카락 엉킴률 0%"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 2,
+   "task": "m1",
+   "ok": true,
+   "ts": "2026-09-03T11:25:58",
+   "provider": "gemini",
+   "in_tokens": 6820,
+   "out_tokens": 1582,
+   "thinking_tokens": 11351,
+   "elapsed_sec": 36.3,
+   "est_usd": 0.03438,
+   "n_segments": 3,
+   "found": {
+    "P1": [
+     15400,
+     105480
+    ],
+    "P3": [
+     209680,
+     319100
+    ],
+    "P4": [
+     319540,
+     389540
+    ]
+   },
+   "recall": 1.0,
+   "iou": 0.0944373362578444,
+   "iou_by_part": {
+    "P1": 0.0,
+    "P3": 0.2833120087735332,
+    "P4": 0.0
+   },
+   "len_ok": 1.0,
+   "gap_free": 0.6666666666666667,
+   "fp": 0,
+   "err": 1,
+   "warn": 1,
+   "segments": [
+    {
+     "part": "P1",
+     "label": "강력한 흡입 및 엉킴 방지",
+     "start_ms": 15400,
+     "end_ms": 105480
+    },
+    {
+     "part": "P3",
+     "label": "역대급 할인 및 구매 혜택",
+     "start_ms": 209680,
+     "end_ms": 319100
+    },
+    {
+     "part": "P4",
+     "label": "핵심 스펙 및 기능 요약",
+     "start_ms": 319540,
+     "end_ms": 389540
+    }
+   ],
+   "score": 0.595
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 2,
+   "task": "m2",
+   "part": "P1",
+   "ok": true,
+   "ts": "2026-09-03T11:26:07",
+   "provider": "gemini",
+   "in_tokens": 1982,
+   "out_tokens": 312,
+   "thinking_tokens": 1890,
+   "elapsed_sec": 8.8,
+   "est_usd": 0.0061,
+   "n_captions": 4,
+   "captions": [
+    "자동 세척 기능",
+    "90도 온수 세척",
+    "90도 열풍 건조",
+    "열풍 건조로 해결"
+   ],
+   "coverage": 0.75,
+   "hits": [
+    "자동 세척",
+    "90도 온수",
+    "열풍 건조"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 0.887
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 2,
+   "task": "m2",
+   "part": "P3",
+   "ok": true,
+   "ts": "2026-09-03T11:26:18",
+   "provider": "gemini",
+   "in_tokens": 1394,
+   "out_tokens": 447,
+   "thinking_tokens": 2181,
+   "elapsed_sec": 11.3,
+   "est_usd": 0.00699,
+   "n_captions": 4,
+   "captions": [
+    "20만 원 즉시 할인",
+    "40만 원대 파격 할인",
+    "공짜 찬스 단 2명",
+    "위대한 쇼픽 특별 혜택"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "20만 원 할인",
+    "40만 원대",
+    "공짜 찬스 2명",
+    "방송 한정"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  },
+  {
+   "model": "gemini-3.5-flash",
+   "run": 2,
+   "task": "m2",
+   "part": "P4",
+   "ok": true,
+   "ts": "2026-09-03T11:26:27",
+   "provider": "gemini",
+   "in_tokens": 1808,
+   "out_tokens": 453,
+   "thinking_tokens": 1868,
+   "elapsed_sec": 8.8,
+   "est_usd": 0.00634,
+   "n_captions": 4,
+   "captions": [
+    "흡입력 20,000Pa",
+    "180도 풀 플랫",
+    "진입 높이 12.5cm",
+    "머리카락 엉킴률 0%"
+   ],
+   "coverage": 1.0,
+   "hits": [
+    "흡입력 2만Pa",
+    "180도 플랫",
+    "12.5cm",
+    "엉킴 0%"
+   ],
+   "count_ok": 1.0,
+   "len_ok": 1.0,
+   "err": 0,
+   "warn": 0,
+   "score": 1.0
+  }
+ ]
+}

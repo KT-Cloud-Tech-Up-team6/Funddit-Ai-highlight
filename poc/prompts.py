@@ -93,6 +93,11 @@ M2_PROMPT = """당신은 라이브 펀딩 방송 하이라이트 쇼츠의 포�
 6. 구간당 3~6개 만든다.
 7. 파트 유형에 맞는 정보를 우선한다.
    시연 파트면 시연 결과, 홍보 파트면 혜택을 우선.
+8. highlight: text 안에서 색으로 강조할 부분(숫자·핵심어)을 text의 부분 문자열로 적는다. 없으면 빈 문자열.
+   "최대 흡입력 10,000Pa" → highlight "10,000Pa"
+9. title: 쇼츠 상단에 고정으로 띄울 제목 1개, 최대 14자. 상품명 + 이 구간의 한 줄 요약.
+   예) "로보락 F25 실제 성능!!", "방송 한정 20만 원 할인!"
+   발화·상품 용어 목록에 있는 내용만 쓴다.
 
 [강조 유형]
 spec / feature / benefit / result / story
@@ -100,8 +105,10 @@ spec / feature / benefit / result / story
 [출력]
 
 {
+  "title": "로보락 F25 실제 성능!!",
   "captions": [
     { "text": "최대 흡입력 10,000Pa",
+      "highlight": "10,000Pa",
       "source_cue_id": "t_042",
       "emphasis": "spec",
       "source_text": "발화 원문 그대로" }

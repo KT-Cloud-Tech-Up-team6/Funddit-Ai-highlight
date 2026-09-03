@@ -1,0 +1,22 @@
+{
+  "_note": "STT 정량 채점용 키워드·숫자. 방송 화면 자막(가격 패널)과 발화 맥락으로 확인한 값. variants 중 하나라도 자막 전체에 있으면 hit. min_count는 최소 등장 횟수.",
+  "keywords": [
+    { "key": "로보락(브랜드)",   "variants": ["로보락"],                         "min_count": 5, "wrong": ["로봐락", "로보라 ", "로보락이 만든"] },
+    { "key": "F25(모델명)",     "variants": ["F25", "에프25", "에프 25"],       "min_count": 2 },
+    { "key": "20,000Pa(흡입력)", "variants": ["20,000Pa", "2만 파스칼", "이만 파스칼", "2만Pa", "20000Pa"], "min_count": 1 },
+    { "key": "180도",           "variants": ["180도"],                          "min_count": 1 },
+    { "key": "12.5cm",          "variants": ["12.5cm", "12.5 cm", "12.5센티"],  "min_count": 1 },
+    { "key": "90도(온수/건조)",  "variants": ["90도"],                          "min_count": 3 },
+    { "key": "20만 원(할인)",    "variants": ["20만 원", "20만원", "이십만 원"],  "min_count": 3 },
+    { "key": "40만 원대",        "variants": ["40만 원대", "40만원대", "사십만 원대"], "min_count": 2 },
+    { "key": "60만 원대",        "variants": ["60만 원대", "60만원대"],           "min_count": 1 },
+    { "key": "69만 9천 원(정가)", "variants": ["69만 9천", "699,000", "육십구만 구천"], "min_count": 1 },
+    { "key": "925원(일 환산)",   "variants": ["925원", "925 원"],                 "min_count": 1 },
+    { "key": "월 2만 원대",      "variants": ["2만 원대", "2만원대"],             "min_count": 2 },
+    { "key": "0%(엉킴)",        "variants": ["0%", "0 %", "영 퍼센트"],          "min_count": 2 },
+    { "key": "무이자",           "variants": ["무이자"],                          "min_count": 1 },
+    { "key": "열풍건조",         "variants": ["열풍건조", "열풍 건조"],           "min_count": 1 },
+    { "key": "위대한 쇼픽(프로그램명)", "variants": ["쇼픽"],                    "min_count": 1 },
+    { "key": "공짜 찬스",        "variants": ["공짜 찬스", "공짜찬스"],           "min_count": 2 }
+  ]
+}

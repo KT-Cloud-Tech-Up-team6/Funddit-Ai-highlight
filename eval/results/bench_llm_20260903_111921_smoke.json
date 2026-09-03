@@ -1,0 +1,66 @@
+{
+ "meta": {
+  "ts": "20260903_111921",
+  "transcript": "out/real/transcript_large.json",
+  "n_cues": 134,
+  "repeats": 1,
+  "elapsed_sec": 1
+ },
+ "summary": [
+  {
+   "model": "gemini-3.5-flash-lite",
+   "calls": 4,
+   "fail": 4,
+   "m1_score": null,
+   "m1_recall": null,
+   "m1_iou": null,
+   "m1_len_ok": null,
+   "m1_gap_free": null,
+   "m1_fp": null,
+   "m1_err": null,
+   "m1_stability": null,
+   "m2_score": null,
+   "m2_coverage": null,
+   "m2_count_ok": null,
+   "m2_len_ok": null,
+   "m2_err": null,
+   "sec_per_call": null,
+   "usd_per_call": null,
+   "usd_per_broadcast": null,
+   "total": 0.0
+  }
+ ],
+ "runs": [
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m1",
+   "ok": false,
+   "error": "ValueError: No API key was provided. Please pass a valid API key. Learn how to create an API key at https://ai.google.dev/gemini-api/docs/api-key."
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P1",
+   "ok": false,
+   "error": "ValueError: No API key was provided. Please pass a valid API key. Learn how to create an API key at https://ai.google.dev/gemini-api/docs/api-key."
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P3",
+   "ok": false,
+   "error": "ValueError: No API key was provided. Please pass a valid API key. Learn how to create an API key at https://ai.google.dev/gemini-api/docs/api-key."
+  },
+  {
+   "model": "gemini-3.5-flash-lite",
+   "run": 1,
+   "task": "m2",
+   "part": "P4",
+   "ok": false,
+   "error": "ValueError: No API key was provided. Please pass a valid API key. Learn how to create an API key at https://ai.google.dev/gemini-api/docs/api-key."
+  }
+ ]
+}

@@ -14,11 +14,19 @@ WrapStyle: 0
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Title,Malgun Gothic,84,&H00FFFFFF,&H00FFFFFF,&H00000000,&H9F000000,-1,0,0,0,100,100,0,0,3,14,0,8,60,60,200,1
 Style: Point,Malgun Gothic,76,&H00FFFFFF,&H00FFFFFF,&H00000000,&H7F000000,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,380,1
+Style: Spec,Malgun Gothic,76,&H00FFFFFF,&H00FFFFFF,&H00000000,&H7F2A2A2A,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,380,1
+Style: Benefit,Malgun Gothic,80,&H00FFFFFF,&H00FFFFFF,&H00000000,&H8F1E2AD8,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,380,1
+Style: Result,Malgun Gothic,80,&H0000FFFF,&H00FFFFFF,&H00000000,&H7F000000,-1,0,0,0,100,100,0,0,3,10,0,2,60,60,380,1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
+
+# 강조 유형 → 스타일 (spec: 진회색 박스 / benefit: 빨간 박스 / result: 노란 글씨 / 나머지: 기본)
+EMPHASIS_STYLE = {"spec": "Spec", "benefit": "Benefit", "result": "Result"}
+HIGHLIGHT_COLOR = "&H0000FFFF&"  # 노란색 (BGR)
 
 
 def _ass_time(ms: int) -> str:
@@ -29,11 +37,28 @@ def _ass_time(ms: int) -> str:
     return f"{h}:{m:02d}:{s:02d}.{cs:02d}"
 
 
-def build_ass(captions: list[Caption], out_path: str | Path) -> Path:
+def _ass_escape(t: str) -> str:
+    return t.replace("{", "(").replace("}", ")").replace("\n", " ")
+
+
+def _with_highlight(c: Caption) -> str:
+    text = _ass_escape(c.text)
+    hl = _ass_escape(getattr(c, "highlight", "") or "")
+    if hl and hl in text:
+        return text.replace(hl, "{\\c" + HIGHLIGHT_COLOR + "}" + hl + "{\\r}", 1)
+    return text
+
+
+def build_ass(captions: list[Caption], out_path: str | Path, title: str = "", duration_ms: int | None = None) -> Path:
+    """포인트 자막 + (선택) 상단 고정 제목. title은 구간 전체(0 ~ duration_ms)에 표시."""
     lines = [ASS_HEADER]
+    if title:
+        end = duration_ms if duration_ms else max((c.end_ms for c in captions if c.end_ms), default=0) + 10_000
+        lines.append(f"Dialogue: 0,{_ass_time(0)},{_ass_time(end)},Title,,0,0,0,,{_ass_escape(title)}\n")
     for c in captions:
+        style = EMPHASIS_STYLE.get(c.emphasis, "Point")
         lines.append(
-            f"Dialogue: 0,{_ass_time(c.start_ms)},{_ass_time(c.end_ms)},Point,,0,0,0,,{c.text}\n"
+            f"Dialogue: 1,{_ass_time(c.start_ms)},{_ass_time(c.end_ms)},{style},,0,0,0,,{_with_highlight(c)}\n"
         )
     out = Path(out_path)
     out.write_text("".join(lines), encoding="utf-8")
@@ -53,6 +78,7 @@ def render_short(
     ass_path: str | Path,
     out_path: str | Path,
     crop_cx: float = 0.5,
+    vertical: bool = True,
 ) -> Path:
     """구간 컷 + 세로 크롭 + 자막 번인. -ss가 -i 앞이라 출력 타임스탬프는 0부터 시작
     → ASS의 쇼츠 로컬 시각과 일치한다.
@@ -61,13 +87,16 @@ def render_short(
     video, ass_path, out_path = Path(video).resolve(), Path(ass_path).resolve(), Path(out_path).resolve()
     # 크롭 창 x = 중심 - 창너비/2, 화면 밖으로 안 나가게 clip
     crop_x = f"clip(iw*{crop_cx:.4f}-ih*9/32\\,0\\,iw-ih*9/16)"  # 쉼표는 필터 구분자라 이스케이프
+    # vertical=False: 크롭 없이 원본 16:9 유지(1920x1080). ASS PlayRes(1080x1920)는 libass가 화면 비율에 맞춰
+    # 스케일하므로 자막은 그대로 하단 중앙에 온다.
+    vf = f"crop=ih*9/16:ih:{crop_x}:0,scale=1080:1920" if vertical else "scale=1920:1080"
     # Windows 드라이브 콜론 이스케이프 문제를 피하려고 ASS 파일이 있는 폴더에서 실행
     cmd = [
         "ffmpeg", "-y",
         "-ss", f"{start_ms/1000:.3f}",
         "-to", f"{end_ms/1000:.3f}",
         "-i", str(video),
-        "-vf", f"crop=ih*9/16:ih:{crop_x}:0,scale=1080:1920,ass={ass_path.name}",
+        "-vf", f"{vf},ass={ass_path.name}",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
         "-c:a", "aac", "-movflags", "+faststart",
         str(out_path),

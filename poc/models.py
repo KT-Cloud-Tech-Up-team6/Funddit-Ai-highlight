@@ -42,6 +42,7 @@ class Caption:
     source_cue_id: str
     emphasis: str
     source_text: str
+    highlight: str = ""  # text 안에서 색으로 강조할 부분(숫자·핵심어). text의 부분 문자열이어야 한다 (코드가 검증)
     # 쇼츠 로컬 타임라인 기준 표시 시각 — 코드가 계산한다 (모델 생성 금지)
     start_ms: int | None = None
     end_ms: int | None = None

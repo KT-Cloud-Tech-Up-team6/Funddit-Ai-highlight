@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -31,21 +30,6 @@ DATA = ROOT / "data"
 OUT = ROOT / "out"
 
 
-def _load_dotenv(path: Path = ROOT / ".env") -> None:
-    """.env가 있으면 환경변수로 로드 (이미 설정된 값은 유지). python-dotenv 없이 단순 파싱."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        k, v = line.split("=", 1)
-        k, v = k.strip(), v.strip().strip('"').strip("'")
-        if v and k not in os.environ:
-            os.environ[k] = v
-
-
-_load_dotenv()
 
 
 def _load_json(path: str | Path):
@@ -70,6 +54,10 @@ def cmd_stt(args):
             args.video, args.out, model_size=args.model or "large-v3", device=args.device,
             initial_prompt=_terms_prompt(args.terms),
         )
+    elif args.engine == "gemini":
+        from poc.stt_gemini import transcribe
+
+        cues = transcribe(args.video, args.out, model=args.model or "gemini-3.7-flash", terms_path=args.terms)
     else:
         from poc.stt_google import transcribe
 
@@ -108,7 +96,7 @@ def cmd_m2(args):
     cap_path = outdir / f"{args.pick.lower()}_captions.json"
     captions, violations = m2_captions.run_m2(target, cues, terms, llm, out_path=cap_path)
     ass_path = outdir / f"{args.pick.lower()}.ass"
-    render.build_ass(captions, ass_path)
+    render.build_ass(captions, ass_path, title=m2_captions.load_title(cap_path), duration_ms=target.end_ms - target.start_ms)
     print(f"M2 완료: 자막 {len(captions)}개 → {cap_path}, {ass_path}")
     print(format_report(violations))
 
@@ -116,10 +104,9 @@ def cmd_m2(args):
 def cmd_render(args):
     seg, captions = m2_captions.load_captions(args.captions)
     ass_path = Path(args.captions).with_suffix(".ass")
-    if not ass_path.exists():
-        render.build_ass(captions, ass_path)
+    render.build_ass(captions, ass_path, title=m2_captions.load_title(args.captions), duration_ms=seg.end_ms - seg.start_ms)
     t0 = time.time()
-    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out, crop_cx=args.crop_cx)
+    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out, crop_cx=args.crop_cx, vertical=not args.keep_ratio)
     thumb = Path(args.out).with_suffix(".jpg")
     render.thumbnail(args.video, seg.start_ms, thumb)
     size_mb = Path(out).stat().st_size / 1024 / 1024
@@ -184,7 +171,7 @@ def main():
     s = sub.add_parser("stt", help="STT (whisper 로컬 / google 클라우드)")
     s.add_argument("--video", required=True)
     s.add_argument("--out", required=True)
-    s.add_argument("--engine", choices=["whisper", "google"], default="whisper")
+    s.add_argument("--engine", choices=["whisper", "google", "gemini"], default="whisper")
     s.add_argument("--model", default=None, help="whisper: large-v3(기본)/small 등, google: chirp_3(기본)/long 등")
     s.add_argument("--device", choices=["auto", "cpu"], default="auto", help="whisper 전용")
     s.add_argument("--terms", help="상품 용어 목록 JSON — 제품명·용어를 STT 힌트로 주입")
@@ -216,6 +203,7 @@ def main():
     s.add_argument("--captions", required=True, help="m2가 저장한 *_captions.json")
     s.add_argument("--out", required=True)
     s.add_argument("--crop-cx", type=float, default=0.5, help="세로 크롭 중심 가로 위치 0~1 (기본 0.5=중앙)")
+    s.add_argument("--keep-ratio", action="store_true", help="세로 크롭 없이 원본 16:9 유지 (1920x1080)")
     s.set_defaults(fn=cmd_render)
 
     s = sub.add_parser("demo", help="목데이터로 전 과정 검증")

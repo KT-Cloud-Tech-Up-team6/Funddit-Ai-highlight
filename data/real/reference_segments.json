@@ -1,0 +1,16 @@
+{
+  "_note": "정량 평가용 기준 구간 (사람 라벨 초안 — Whisper large-v3 자막을 읽고 작성, 팀 확인 필요). alternatives 중 시간 IoU가 가장 큰 것으로 채점. expected=false인 파트는 이 방송에 없음(반환하면 오탐).",
+  "transcript": "out/real/transcript_large.json",
+  "parts": {
+    "P1": { "expected": true,  "alternatives": [ { "start_ms": 114000, "end_ms": 210000, "desc": "자동세척 버튼→90도 온수 세척 시연→열감지 필름→열풍건조" } ] },
+    "P3": { "expected": true,  "alternatives": [
+      { "start_ms": 210000, "end_ms": 241000, "desc": "방송 한정 20만 원 할인, 40만 원대, 공짜 찬스 2명" },
+      { "start_ms": 297000, "end_ms": 320000, "desc": "60만 원대→20만 원 세일, 무이자, 월 2만 원대/하루 900원대" },
+      { "start_ms": 380000, "end_ms": 402000, "desc": "월 2만 원대, 공짜 찬스 2명, 방송 끝나면 사라짐" },
+      { "start_ms": 483000, "end_ms": 498000, "desc": "20만 원 모바일 직할인, 69만 9천→40만 원대" } ] },
+    "P4": { "expected": true,  "alternatives": [
+      { "start_ms": 15000,  "end_ms": 113000, "desc": "흡입력 2만Pa, 180도 플랫, 12.5cm, 엉킴 0%, 통 비우기" },
+      { "start_ms": 438000, "end_ms": 478000, "desc": "물걸레+진공, 온수 자동세척, 90도 건조, 엉킴 0% 테스트" } ] },
+    "P5": { "expected": false, "alternatives": [] }
+  }
+}

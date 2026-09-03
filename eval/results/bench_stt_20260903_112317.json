@@ -1,0 +1,126 @@
+[
+ {
+  "name": "large",
+  "engine": "faster-whisper",
+  "model": "large-v3",
+  "device": "cuda/int8_float32",
+  "kw_score": 0.8823529411764706,
+  "kw_hit": 0.8823529411764706,
+  "wrong": 0,
+  "per_keyword": [
+   {
+    "key": "로보락(브랜드)",
+    "count": 8,
+    "need": 5,
+    "score": 1.0
+   },
+   {
+    "key": "F25(모델명)",
+    "count": 2,
+    "need": 2,
+    "score": 1.0
+   },
+   {
+    "key": "20,000Pa(흡입력)",
+    "count": 0,
+    "need": 1,
+    "score": 0.0
+   },
+   {
+    "key": "180도",
+    "count": 1,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "12.5cm",
+    "count": 1,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "90도(온수/건조)",
+    "count": 5,
+    "need": 3,
+    "score": 1.0
+   },
+   {
+    "key": "20만 원(할인)",
+    "count": 6,
+    "need": 3,
+    "score": 1.0
+   },
+   {
+    "key": "40만 원대",
+    "count": 2,
+    "need": 2,
+    "score": 1.0
+   },
+   {
+    "key": "60만 원대",
+    "count": 2,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "69만 9천 원(정가)",
+    "count": 1,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "925원(일 환산)",
+    "count": 2,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "월 2만 원대",
+    "count": 2,
+    "need": 2,
+    "score": 1.0
+   },
+   {
+    "key": "0%(엉킴)",
+    "count": 3,
+    "need": 2,
+    "score": 1.0
+   },
+   {
+    "key": "무이자",
+    "count": 1,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "열풍건조",
+    "count": 2,
+    "need": 1,
+    "score": 1.0
+   },
+   {
+    "key": "위대한 쇼픽(프로그램명)",
+    "count": 0,
+    "need": 1,
+    "score": 0.0
+   },
+   {
+    "key": "공짜 찬스",
+    "count": 3,
+    "need": 2,
+    "score": 1.0
+   }
+  ],
+  "cer": 0.12998204667863555,
+  "cues": 134,
+  "chars": 2749,
+  "punct": 0.9850746268656716,
+  "max_gap": 34.22,
+  "mono": true,
+  "span": 1.0,
+  "ts_drift": 0.0,
+  "sec": 109.0,
+  "usd": 0.0,
+  "pair_cer": null
+ }
+]

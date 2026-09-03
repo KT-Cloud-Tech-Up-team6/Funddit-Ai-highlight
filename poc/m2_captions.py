@@ -61,14 +61,19 @@ def run_m2(
 
     captions: list[Caption] = []
     for c in raw.get("captions", []):
+        text = c.get("text", "")
+        hl = c.get("highlight", "") or ""
         captions.append(
             Caption(
-                text=c.get("text", ""),
+                text=text,
                 source_cue_id=c.get("source_cue_id", ""),
                 emphasis=c.get("emphasis", ""),
                 source_text=c.get("source_text", ""),
+                highlight=hl if hl and hl in text else "",  # text의 부분 문자열이 아니면 강조 무시
             )
         )
+    # 상단 제목: 모델이 안 주면 상품명 + 구간 라벨로 대체
+    title = (raw.get("title") or "").strip() or f"{terms.get('product_name', '')} {segment.label}".strip()
 
     violations = validate_captions(segment, captions, all_cues, terms)
     # ERROR가 붙은 자막(숫자 환각·근거 없음)은 렌더링에서 제외
@@ -84,6 +89,7 @@ def run_m2(
     if out_path:
         result = {
             "segment": asdict(segment),
+            "title": title,
             "captions": [asdict(c) for c in kept],
             "dropped": len(captions) - len(kept),
             "violations": [asdict(v) for v in violations],
@@ -97,3 +103,7 @@ def run_m2(
 def load_captions(path: str | Path) -> tuple[Segment, list[Caption]]:
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     return Segment(**data["segment"]), [Caption(**c) for c in data["captions"]]
+
+
+def load_title(path: str | Path) -> str:
+    return json.loads(Path(path).read_text(encoding="utf-8")).get("title", "")
