@@ -21,6 +21,10 @@ DEFAULT_MODEL = "gemini-3.5-flash-lite"
 # 단가 (USD / 1M tokens). 비용 표 추정용 — None이면 비용을 '?'로 표시한다.
 # Claude: 공식 표(2026-06). Gemini: 공개 가격 기준 추정치(변동 가능). OpenAI: 키 확보 후 확인.
 PRICE_PER_M: dict[str, tuple[float, float] | None] = {
+    "gemini-2.5-flash-lite": (0.10, 0.40),
+    "gemini-2.5-flash": (0.30, 2.50),
+    "gemini-2.5-pro": (1.25, 10.00),
+    "gemini-3-flash-preview": (0.30, 2.50),
     "gemini-3.1-flash-lite": (0.075, 0.30),
     "gemini-3.5-flash-lite": (0.10, 0.40),
     "gemini-3.5-flash": (0.30, 2.50),

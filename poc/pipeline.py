@@ -75,7 +75,12 @@ def cmd_m1(args):
     cues = load_cues(args.transcript)
     cuesheet = _load_json(args.cuesheet) if args.cuesheet else []
     llm = LLM(mock_file=DATA / "mock_llm" / "m1_response.json" if args.mock else None, tag="m1")
-    segments, violations = m1_segments.run_m1(cues, cuesheet, llm, out_path=args.out)
+    motion = None
+    if args.motion:
+        from poc import motion as motion_mod
+
+        motion = motion_mod.load(args.motion)
+    segments, violations = m1_segments.run_m1(cues, cuesheet, llm, out_path=args.out, motion=motion)
     print(f"M1 완료 ({llm.model}): 구간 {len(segments)}개 → {args.out}")
     for sg in segments:
         dur = (sg.end_ms - sg.start_ms) / 1000 if sg.end_ms else 0
@@ -104,13 +109,26 @@ def cmd_m2(args):
 def cmd_render(args):
     seg, captions = m2_captions.load_captions(args.captions)
     ass_path = Path(args.captions).with_suffix(".ass")
-    render.build_ass(captions, ass_path, title=m2_captions.load_title(args.captions), duration_ms=seg.end_ms - seg.start_ms)
+    render.build_ass(captions, ass_path, title=m2_captions.load_title(args.captions),
+                     duration_ms=seg.end_ms - seg.start_ms, layout=args.layout)
     t0 = time.time()
-    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out, crop_cx=args.crop_cx, vertical=not args.keep_ratio)
+    out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out,
+                              crop_cx=args.crop_cx, vertical=not args.keep_ratio,
+                              layout=args.layout, bg_blur=args.bg_blur)
     thumb = Path(args.out).with_suffix(".jpg")
     render.thumbnail(args.video, seg.start_ms, thumb)
     size_mb = Path(out).stat().st_size / 1024 / 1024
     print(f"렌더링 완료: {out} ({size_mb:.1f}MB, {time.time()-t0:.0f}초 소요), 썸네일 {thumb}")
+
+
+def cmd_motion(args):
+    from poc import motion as motion_mod
+
+    r = motion_mod.analyze(args.video, args.out)
+    print(f"움직임 분석 완료: 길이 {r['duration_sec']}초, 정지 화면 {r['still_total_sec']}초 "
+          f"({r['still_pct']}%) → {args.out}")
+    for w in r["live_windows"]:
+        print(f"  움직이는 구간: {w['start_ms']/1000:.0f}~{w['end_ms']/1000:.0f}초 ({w['sec']}초)")
 
 
 def cmd_demo(args):
@@ -186,6 +204,7 @@ def main():
     s.add_argument("--transcript", required=True)
     s.add_argument("--cuesheet")
     s.add_argument("--out", required=True)
+    s.add_argument("--motion", help="poc.motion이 만든 motion.json — 정지 화면 구간을 피하게 한다")
     s.add_argument("--mock", action="store_true")
     s.set_defaults(fn=cmd_m1)
 
@@ -204,7 +223,15 @@ def main():
     s.add_argument("--out", required=True)
     s.add_argument("--crop-cx", type=float, default=0.5, help="세로 크롭 중심 가로 위치 0~1 (기본 0.5=중앙)")
     s.add_argument("--keep-ratio", action="store_true", help="세로 크롭 없이 원본 16:9 유지 (1920x1080)")
+    s.add_argument("--layout", choices=["crop", "letterbox"], default="letterbox",
+                   help="letterbox(기본): 원본 비율 그대로 가운데 배치 + 위아래 여백 / crop: 9:16으로 잘라 꽉 채움")
+    s.add_argument("--bg-blur", action="store_true", help="letterbox 여백을 원본 흐린 배경으로 채운다 (기본: 검정)")
     s.set_defaults(fn=cmd_render)
+
+    s = sub.add_parser("motion", help="영상 움직임 분석 (정지 화면 구간 탐지)")
+    s.add_argument("--video", required=True)
+    s.add_argument("--out", required=True)
+    s.set_defaults(fn=cmd_motion)
 
     s = sub.add_parser("demo", help="목데이터로 전 과정 검증")
     s.add_argument("--remake-video", action="store_true")

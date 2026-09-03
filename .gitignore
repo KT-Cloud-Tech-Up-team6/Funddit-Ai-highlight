@@ -4,3 +4,6 @@ __pycache__/
 out/
 *.mp4
 *.jpg
+eval/results/
+eval/results_archive_*/
+out/archive_*/

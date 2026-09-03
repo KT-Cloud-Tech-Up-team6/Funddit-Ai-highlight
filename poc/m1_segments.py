@@ -16,6 +16,7 @@ def run_m1(
     cuesheet: list[dict],
     llm: LLM,
     out_path: str | Path | None = None,
+    motion: list[float] | None = None,
 ) -> tuple[list[Segment], list[Violation]]:
     payload = {
         "transcript": [
@@ -23,6 +24,14 @@ def run_m1(
         ],
         "cuesheet": cuesheet,
     }
+    # 움직임 정보를 주면 "화면이 멈춘 시간대"를 모델이 피할 수 있다 (실제 방송은 대부분이 정지 화면)
+    if motion:
+        from poc.motion import live_windows, still_ranges
+
+        payload["still_ranges_ms"] = [
+            {"start_ms": a, "end_ms": b} for a, b in still_ranges(motion)
+        ]
+        payload["moving_windows_ms"] = live_windows(motion)
     raw = llm.generate_json(M1_PROMPT, payload)
 
     segments: list[Segment] = []
@@ -37,7 +46,7 @@ def run_m1(
             )
         )
 
-    violations = validate_segments(segments, cues)
+    violations = validate_segments(segments, cues, motion=motion)
 
     # 시각은 코드가 cue_id로 조회해 채운다
     idx = {c.cue_id: c for c in cues}

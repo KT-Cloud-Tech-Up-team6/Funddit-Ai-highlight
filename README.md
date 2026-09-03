@@ -88,6 +88,54 @@ M2 포인트 자막 + 렌더링 (P1·P3 각각, `out/real/large_<모델>/short_p
 
 코드 수정 2건: ① 같은 큐에 자막이 2개면 0.5초짜리 자막이 나오던 문제 → 순차 배치 ② SEG_GAP 게이트 신설(구간 내 10초 이상 무발화 WARN).
 
+## 영상 움직임 분석 (정지 화면 거르기)
+
+실제 방송(로보락 F25)을 재보니 **9분 20초 중 96%가 정지 화면**이었다.
+장면은 몇 초마다 바뀌지만 장면 안에서는 그림이 멈춰 있는, 슬라이드쇼에 가까운 편집이다.
+발화만 보고 구간을 고르면 "말은 흘러가는데 화면은 멈춘" 쇼츠가 나온다 — 실제로 이전 결과 3개 구간이 전부 정지 비율 97~100%였다.
+
+```powershell
+python -m poc.pipeline motion --video 방송.mp4 --out out/real/motion.json
+python -m poc.pipeline m1 --transcript ... --motion out/real/motion.json --out ...   # 정지 구간을 피해 고르게 한다
+```
+
+- [poc/motion.py](poc/motion.py) — 프레임을 뽑아 인접 프레임 픽셀 차이를 직접 계산한다.
+  ffmpeg `signalstats`/`scene_score`는 화면 전체 평균이라 작은 움직임이 0으로 묻히고, `-ss`를 `-i` 앞에 두면 키프레임으로 튄다.
+- M1 입력에 `still_ranges_ms`(멈춘 시간대)와 `moving_windows_ms`(움직이는 시간대)를 함께 준다.
+- 게이트 `SEG_STILL` — 구간 내 정지 비율이 70%를 넘으면 WARN.
+
+## 렌더링 레이아웃
+
+| 모드 | 결과 | 쓰는 곳 |
+| --- | --- | --- |
+| `--layout letterbox` (기본) | 원본 비율 그대로 1080x1920 가운데 배치, 위아래 여백 | **잘리는 것 없음.** 제목은 위 여백, 포인트 자막은 아래 여백에 |
+| `--layout letterbox --bg-blur` | 여백을 원본 흐린 배경으로 채움 | 검정 여백이 밋밋할 때 |
+| `--layout crop --crop-cx 0.62` | 9:16으로 잘라 꽉 채움 | 피사체가 한쪽에 몰려 있고 잘려도 괜찮을 때 |
+
+## 정량 벤치 (모델 비교는 점수표로)
+
+정성 판정 대신 같은 입력으로 반복 실행해 점수를 낸다. 결과는 `eval/results/`에 md+json으로 쌓인다.
+
+```powershell
+# STT: 키워드·숫자 정확도, CER(기준 전사 교정 후), 엔진 간 CER, 타임코드 정확도(span·ts_drift), 시간·비용
+python -m eval.bench_stt out/real/transcript_*.json --reference data/real/reference_transcript.txt
+
+# LLM(M1·M2): 모델을 쉼표로 나열, N회 반복. gemini-* / claude-* / gpt-* 접두사로 프로바이더 자동 선택
+python -m eval.bench_llm --models gemini-3.5-flash-lite,gemini-3.7-flash,claude-haiku-4-5,claude-sonnet-5,gpt-5-mini --repeats 3
+```
+
+| 파일 | 역할 |
+| --- | --- |
+| [eval/bench_llm.py](eval/bench_llm.py) | M1: recall·IoU·길이·갭·오탐·ERR·반복 안정성 / M2: 핵심 사실 커버리지·개수·12자·ERR / 호출당 초·USD. 점수식은 docstring |
+| [eval/bench_stt.py](eval/bench_stt.py) | 키워드 점수(kw_score)·오인식 수·CER·pair_CER·span·ts_drift·처리 시간·비용 |
+| [data/real/reference_segments.json](data/real/reference_segments.json) | M1 기준 구간 (사람 라벨 초안, alternatives 중 최대 IoU로 채점) |
+| [data/real/reference_facts.json](data/real/reference_facts.json) | M2 파트별 핵심 사실 + 허용 표기 |
+| [data/real/stt_keywords.json](data/real/stt_keywords.json) | STT 채점 키워드·숫자 17개 (화면 자막으로 확인한 값) |
+| [data/real/reference_transcript.draft.txt](data/real/reference_transcript.draft.txt) | CER용 기준 전사 초안 — 사람이 오디오 듣고 교정한 뒤 `reference_transcript.txt`로 저장하면 CER이 활성화 |
+
+키: `.env`에 `GEMINI_API_KEY`(필수), `ANTHROPIC_API_KEY`·`OPENAI_API_KEY`(해당 모델 비교 시). 단가는 `poc/llm.py`의 `PRICE_PER_M`.
+주의: Gemini 무료 등급 키는 `gemini-3.1-pro-preview` 호출 한도가 0이라 pro 비교엔 유료 키가 필요하다.
+
 ## 구조
 
 | 경로 | 역할 |

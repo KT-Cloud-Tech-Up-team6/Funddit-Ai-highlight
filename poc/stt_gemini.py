@@ -42,21 +42,26 @@ def transcribe(video: str | Path, out_json: str | Path, model: str = "gemini-3.7
                         "-b:a", "64k", str(audio)], check=True)
         up = client.files.upload(file=str(audio))
         t_up = time.time() - t0
+        def _gen(config, extra=""):
+            for attempt in range(5):  # 503/429는 지수 백오프 재시도
+                try:
+                    return client.models.generate_content(
+                        model=model, contents=[up, PROMPT.format(hint=hint) + extra], config=config)
+                except Exception as e:  # noqa: BLE001
+                    code = getattr(e, "code", None) or getattr(e, "status_code", None)
+                    if code not in (429, 503) or attempt == 4:
+                        raise
+                    wait = 10 * 2**attempt
+                    print(f"[stt-gemini] {model} {code} → {wait}초 후 재시도")
+                    time.sleep(wait)
+
         try:
-            resp = client.models.generate_content(
-                model=model,
-                contents=[up, PROMPT.format(hint=hint)],
-                config={"response_mime_type": "application/json", "temperature": 0.0},
-            )
+            resp = _gen({"response_mime_type": "application/json", "temperature": 0.0})
         except Exception as e:  # noqa: BLE001 — 'JSON mode is not enabled for this model'
             if "JSON mode" not in str(e):
                 raise
             print(f"[stt-gemini] {model}: JSON 모드 미지원 → 텍스트 모드")
-            resp = client.models.generate_content(
-                model=model,
-                contents=[up, PROMPT.format(hint=hint) + "\n(JSON을 쓸 수 없으면 한 줄에 하나씩 '[시작초-끝초] 문장' 형식으로)"],
-                config={"temperature": 0.0},
-            )
+            resp = _gen({"temperature": 0.0}, "\n(JSON을 쓸 수 없으면 한 줄에 하나씩 '[시작초-끝초] 문장' 형식으로)")
         try:
             client.files.delete(name=up.name)
         except Exception:  # noqa: BLE001

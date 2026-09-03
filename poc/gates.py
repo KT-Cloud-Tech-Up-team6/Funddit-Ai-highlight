@@ -20,6 +20,7 @@ from poc.numbers import extract_numbers
 SEG_MIN_MS = 60_000
 SEG_MAX_MS = 120_000
 SEG_MAX_GAP_MS = 10_000  # 구간 내 허용 무발화 갭
+SEG_MAX_STILL_RATIO = 0.7  # 구간 내 정지 화면 비율이 이보다 크면 경고 (쇼츠가 멈춘 그림이 된다)
 MAX_SEGMENTS = 6
 MAX_LABEL_LEN = 12
 MAX_CAPTION_LEN = 12
@@ -32,7 +33,9 @@ def _core_len(s: str) -> int:
     return len(re.sub(r"[\s,.·!?%~\-()]", "", s))
 
 
-def validate_segments(segments: list[Segment], cues: list[Cue]) -> list[Violation]:
+def validate_segments(segments: list[Segment], cues: list[Cue],
+                      motion: list[float] | None = None) -> list[Violation]:
+    """motion: poc.motion의 초당 움직임 강도. 주면 정지 화면 구간(SEG_STILL)을 함께 판정한다."""
     v: list[Violation] = []
     idx = {c.cue_id: c for c in cues}
     order = {c.cue_id: i for i, c in enumerate(cues)}
@@ -69,6 +72,15 @@ def validate_segments(segments: list[Segment], cues: list[Cue]) -> list[Violatio
 
         if _core_len(s.label) > MAX_LABEL_LEN:
             v.append(Violation("WARN", "SEG_LABEL_LEN", f"{ref}: 라벨이 {MAX_LABEL_LEN}자 초과"))
+
+        # 구간 대부분이 정지 화면이면 "말만 흐르고 그림은 멈춘" 쇼츠가 된다 (실제 방송 96%가 정지)
+        if motion:
+            from poc.motion import still_ratio
+
+            ratio = still_ratio(motion, start_ms, end_ms)
+            if ratio > SEG_MAX_STILL_RATIO:
+                v.append(Violation("WARN", "SEG_STILL",
+                                   f"{ref}: 정지 화면 비율 {ratio*100:.0f}% — 움직이는 구간을 고르는 편이 낫다"))
 
         # 구간 안에 긴 무발화 갭(음악·화면 전환)이 끼면 쇼츠에 빈 구간이 생긴다 — 실제 방송에서 34초 갭 발견
         i0, i1 = order[s.start_cue_id], order[s.end_cue_id]

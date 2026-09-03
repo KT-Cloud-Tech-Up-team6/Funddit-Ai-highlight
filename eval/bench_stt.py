@@ -138,7 +138,8 @@ def main():
             "usd": meta.get("est_usd", 0.0) or 0.0,
         })
     pair = {n: [] for n in texts}
-    for a, b in combinations(texts, 2):
+    valid = [n for n, t in texts.items() if len(normalize(t)) > 100]  # 빈/실패 자막은 상호 CER에서 제외
+    for a, b in combinations(valid, 2):
         pair[a].append(cer(texts[a], texts[b]))
         pair[b].append(cer(texts[b], texts[a]))
     for r in rows:
@@ -148,7 +149,7 @@ def main():
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     h = ["자막", "엔진/모델", "kw_score", "kw_hit", "오인식", "CER", "pair_CER", "큐", "문장부호", "max_gap", "span", "ts_drift", "초", "USD"]
     lines = [f"# STT 벤치 {ts}", "",
-             f"- 키워드 {len(kws)}개 (`{args.keywords}`), 기준 전사: {'있음' if ref_text else '없음 → CER 생략, pair_CER 참고'}",
+             f"- 키워드 {len(kws)}개 (`{args.keywords}`), 기준 전사: {ref_path.name + ' (초안이면 그 원본 엔진의 CER은 0에 가깝게 나오므로 사람 교정 전엔 참고 불가)' if ref_text else '없음 → CER 생략, pair_CER 참고'}",
              "- 지표 정의는 `eval/bench_stt.py` docstring.", "",
              "| " + " | ".join(h) + " |", "|" + "---|" * len(h)]
     for r in rows:
