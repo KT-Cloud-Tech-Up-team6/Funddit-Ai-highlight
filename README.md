@@ -116,8 +116,8 @@ python -m poc.pipeline m1 --transcript ... --motion out/real/motion.json --out .
 # STT: 키워드·숫자 정확도, CER(기준 전사 교정 후), 엔진 간 CER, 타임코드 정확도(span·ts_drift), 시간·비용
 python -m eval.bench_stt out/real/transcript_*.json --reference data/real/reference_transcript.txt
 
-# LLM(M1·M2): 모델을 쉼표로 나열, N회 반복. gemini-* / claude-* / gpt-* 접두사로 프로바이더 자동 선택
-python -m eval.bench_llm --models gemini-3.5-flash-lite,gemini-3.7-flash,claude-haiku-4-5,claude-sonnet-5,gpt-5-mini --repeats 3
+# LLM(M1·M2): Gemini 등급별 비교. 모델을 쉼표로 나열, N회 반복
+python -m eval.bench_llm --models gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3.5-flash,gemini-3.7-flash --repeats 3
 ```
 
 | 파일 | 역할 |
@@ -129,7 +129,9 @@ python -m eval.bench_llm --models gemini-3.5-flash-lite,gemini-3.7-flash,claude-
 | [data/real/stt_keywords.json](data/real/stt_keywords.json) | STT 채점 키워드·숫자 17개 (화면 자막으로 확인한 값) |
 | [data/real/reference_transcript.draft.txt](data/real/reference_transcript.draft.txt) | CER용 기준 전사 초안 — 사람이 오디오 듣고 교정한 뒤 `reference_transcript.txt`로 저장하면 CER이 활성화 |
 
-키: `.env`에 `GEMINI_API_KEY`(필수), `ANTHROPIC_API_KEY`·`OPENAI_API_KEY`(해당 모델 비교 시). 단가는 `poc/llm.py`의 `PRICE_PER_M`.
+키: `.env`에 `GEMINI_API_KEY`. 단가는 `poc/llm.py`의 `PRICE_PER_M`.
+모델 비교는 **Gemini 등급 간 비교**로 한정한다 (챗 API가 Gemini라 운영을 통일).
+`poc/llm.py`는 `claude-*`/`gpt-*` 접두사 라우팅도 갖고 있어 필요해지면 키만 넣으면 바로 붙는다.
 주의: Gemini 무료 등급 키는 `gemini-3.1-pro-preview` 호출 한도가 0이라 pro 비교엔 유료 키가 필요하다.
 
 ## 구조
