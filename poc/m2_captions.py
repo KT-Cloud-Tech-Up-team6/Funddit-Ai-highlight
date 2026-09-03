@@ -24,15 +24,20 @@ def assign_timing(captions: list[Caption], cues: list[Cue], seg_start_ms: int) -
     idx = {c.cue_id: c for c in cues}
     caps = [c for c in captions if c.source_cue_id in idx]
     caps.sort(key=lambda c: idx[c.source_cue_id].start_ms)
+    prev_end = -1
     for c in caps:
         cue = idx[c.source_cue_id]
-        c.start_ms = cue.start_ms - seg_start_ms
+        # 같은 큐에 자막이 여럿이면(긴 발화 하나에 포인트 2개) 앞 자막 뒤에 이어 붙인다 — 0.5초짜리 자막 방지
+        c.start_ms = max(cue.start_ms - seg_start_ms, prev_end)
         show = max(MIN_SHOW_MS, min(MAX_SHOW_MS, cue.end_ms - cue.start_ms))
         c.end_ms = c.start_ms + show
-    # 겹치면 앞 자막을 뒤 자막 시작에 맞춰 자른다 (최소 500ms는 보장)
+        prev_end = c.end_ms
+    # 다음 자막의 큐가 먼저 시작하면 앞 자막을 거기서 자른다 (최소 표시 시간은 보장)
     for a, b in zip(caps, caps[1:]):
         if a.end_ms > b.start_ms:
-            a.end_ms = max(a.start_ms + 500, b.start_ms)
+            a.end_ms = max(a.start_ms + MIN_SHOW_MS, b.start_ms)
+            b.start_ms = max(b.start_ms, a.end_ms)
+            b.end_ms = max(b.end_ms, b.start_ms + MIN_SHOW_MS)
     return caps
 
 

@@ -1,5 +1,4 @@
-# 실제 방송(로보락 F25)으로 CFG-1/2/3 실행. 사용 전 .env 값을 환경변수로 로드할 것:
-#   Get-Content .env | ? { $_ -match '^\s*[^#].*=' } | % { $k,$v = $_ -split '=',2; [Environment]::SetEnvironmentVariable($k.Trim(), $v.Trim()) }
+# 실제 방송(로보락 F25)으로 CFG-1/2/3 실행. .env는 poc.pipeline이 자동 로드한다.
 #
 #   .\run_real.ps1 stt          # Whisper small/large-v3 + (자격증명 있으면) Google STT → out/real/transcript_*.json
 #   .\run_real.ps1 m1 large     # STT 결과 하나 골라 M1 (Flash-Lite, Flash 두 번)

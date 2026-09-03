@@ -28,8 +28,7 @@ python -m poc.pipeline demo
 
 ```powershell
 pip install -r requirements.txt          # google-genai + faster-whisper(+CUDA 런타임) + google-cloud-speech
-copy .env.example .env                   # 키 입력 후 아래 한 줄로 환경변수 로드
-Get-Content .env | ? { $_ -match '^\s*[^#].*=' } | % { $k,$v = $_ -split '=',2; [Environment]::SetEnvironmentVariable($k.Trim(), $v.Trim()) }
+copy .env.example .env                   # 키 입력 — pipeline이 .env를 자동 로드 (수동 로드 불필요)
 
 .\run_real.ps1 stt            # Whisper small/large-v3 (+Google STT, 자격증명 있으면) → out/real/transcript_*.json + 비교표
 .\run_real.ps1 m1 large       # M1 구간 분할 — Flash-Lite, Flash 두 번 → out/real/segments_large_*.json
@@ -64,6 +63,31 @@ python -m poc.pipeline render --video 방송.mp4 --captions out/p1_captions.json
 `--crop-cx 0.62`로 중심을 오른쪽으로 옮기면 진행자+제품이 들어온다. 하단 1/6은 전화번호 띠라 자막 MarginV를 260→380으로 올려 그 위에 배치.
 장면마다 피사체 위치가 달라(제품 클로즈업 0.55, 진행자 시연 0.74) 고정 크롭은 한계 — 계획서 7번 "추적 크롭" 후보.
 
+### M1·M2 실측 (2026-09-03, STT=Whisper large-v3, 큐시트 없음, 댓글 없음)
+
+M1 구간 분할 (입력 6,820 토큰):
+
+| 모델 | 찾은 파트 | 게이트 | 소요 | 비용/호출 | 메모 |
+| --- | --- | --- | --- | --- | --- |
+| gemini-3.5-flash-lite | P1 79초, P3 31초, P4 40초 | WARN SEG_LENGTH ×2 (60초 미만) | 3.2초 | $0.0011 | 시연·홍보 찾음. 구간을 짧게 잡는 경향 |
+| gemini-3.7-flash | P4 91초, P1 93초, P3 109초 | WARN SEG_GAP (P3에 34초 무발화 포함) | 6.4초 | $0.0065 | 길이 규칙 준수. 대신 음악 구간(241~275초)을 P3에 포함 |
+
+M2 포인트 자막 + 렌더링 (P1·P3 각각, `out/real/large_<모델>/short_p*.mp4`):
+
+| 모델 | P1 자막 | P3 자막 | 게이트 | 소요/호출 | 비용/호출 |
+| --- | --- | --- | --- | --- | --- |
+| gemini-3.5-flash-lite | 자동 세척 기능 / 90도 온수 세척 / 90도 열풍건조 | 20만 원 즉시 할인 / 40만 원대 특가 / 공짜 찬스 2명 | 통과 | 1.5초 | $0.0003 |
+| gemini-3.7-flash | 버튼 하나로 자동 세척 / 90도 온수 세척 / 90도 열풍 건조 / 열풍 건조로 냄새 해결 | 즉시 할인 20만 원 / 40만 원대로 할인 / 로보락 F25 / 무이자 혜택 지원 / 하루 900원대 | 통과 | 7.8초 | $0.0048 |
+
+숫자 환각 0건 (양쪽 모두 CAP_NUMBER_FAKE 없음). 렌더링은 구간당 3~11초, 파일 1.2~3.7MB.
+
+방송 1회 비용 추정 (STT Whisper 로컬 0원 + M1 1회 + M2 3회): Flash-Lite ≈ $0.002 (약 3원), Flash ≈ $0.021 (약 30원). 계획서 예상대로 LLM 비용은 무시할 수준.
+
+잠정 판정: **Flash-Lite로 충분** — 시연·홍보 파트를 찾고 숫자도 안 틀림. 약점은 구간 길이(짧게 잡음)인데 이는 프롬프트 조정으로 대응 가능. Flash는 길이는 잘 맞추지만 무발화 갭을 포함했고 호출당 2~5배 느리고 6배 비쌈.
+👁 육안 판정 남음: 라벨 적절성, 말 중간 끊김, 크롭 품질, "올려도 될 만한가".
+
+코드 수정 2건: ① 같은 큐에 자막이 2개면 0.5초짜리 자막이 나오던 문제 → 순차 배치 ② SEG_GAP 게이트 신설(구간 내 10초 이상 무발화 WARN).
+
 ## 구조
 
 | 경로 | 역할 |
@@ -89,7 +113,9 @@ python -m poc.pipeline render --video 방송.mp4 --captions out/p1_captions.json
 - STEP 1 (사용자): 댓글 시계열 목데이터(`data/mock_comments.json` 형식), 큐시트(선택)
 - STEP 2 (사용자): `data/real/product_terms.json`의 `_check` 항목을 상품 상세로 확인
 - STEP 3 (사용자): Google STT 서비스 계정 키 + 프로젝트 ID → `.env` (CFG-2/3). 생략하면 Whisper만 비교
-- STEP 4~10: Gemini API 키(`.env`) 확보 후 `run_real.ps1 m1` → 체크리스트 → `m2` → 육안 판정 → 비용 정리
+- STEP 5·8 (사용자·팀원): 위 쇼츠 4개 육안 판정 (`out/real/large_*/short_p1.mp4`, `short_p3.mp4`)
+- STEP 4 보강: 댓글 목데이터 오면 P2 추가, Flash-Lite 구간 길이 프롬프트 조정 후 재실행
+- STEP 10: 모델·프롬프트 확정서
 
 STT 잠정 판정: large-v3는 가격·수치를 전부 맞게 받아써서 계획서 11번 기준(숫자 틀리면 탈락) 통과. small은 제품명 오인식이 많아 탈락. 용어 힌트는 단위 표기엔 도움이 되나 큐가 잘게 쪼개지는 부작용이 있어 M1 결과 보고 결정.
 

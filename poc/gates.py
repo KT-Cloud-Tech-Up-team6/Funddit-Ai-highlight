@@ -19,6 +19,7 @@ from poc.numbers import extract_numbers
 
 SEG_MIN_MS = 60_000
 SEG_MAX_MS = 120_000
+SEG_MAX_GAP_MS = 10_000  # 구간 내 허용 무발화 갭
 MAX_SEGMENTS = 6
 MAX_LABEL_LEN = 12
 MAX_CAPTION_LEN = 12
@@ -68,6 +69,13 @@ def validate_segments(segments: list[Segment], cues: list[Cue]) -> list[Violatio
 
         if _core_len(s.label) > MAX_LABEL_LEN:
             v.append(Violation("WARN", "SEG_LABEL_LEN", f"{ref}: 라벨이 {MAX_LABEL_LEN}자 초과"))
+
+        # 구간 안에 긴 무발화 갭(음악·화면 전환)이 끼면 쇼츠에 빈 구간이 생긴다 — 실제 방송에서 34초 갭 발견
+        i0, i1 = order[s.start_cue_id], order[s.end_cue_id]
+        for a, b in zip(cues[i0:i1], cues[i0 + 1 : i1 + 1]):
+            gap = b.start_ms - a.end_ms
+            if gap >= SEG_MAX_GAP_MS:
+                v.append(Violation("WARN", "SEG_GAP", f"{ref}: {a.cue_id}→{b.cue_id} 사이 무발화 {gap/1000:.0f}초"))
 
         if not s.evidence:
             v.append(Violation("ERROR", "SEG_NO_EVIDENCE", f"{ref}: evidence 없음"))

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -28,6 +29,23 @@ from poc.transcript import load_cues
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 OUT = ROOT / "out"
+
+
+def _load_dotenv(path: Path = ROOT / ".env") -> None:
+    """.env가 있으면 환경변수로 로드 (이미 설정된 값은 유지). python-dotenv 없이 단순 파싱."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if v and k not in os.environ:
+            os.environ[k] = v
+
+
+_load_dotenv()
 
 
 def _load_json(path: str | Path):
@@ -68,9 +86,12 @@ def cmd_p2(args):
 def cmd_m1(args):
     cues = load_cues(args.transcript)
     cuesheet = _load_json(args.cuesheet) if args.cuesheet else []
-    llm = LLM(mock_file=DATA / "mock_llm" / "m1_response.json" if args.mock else None)
+    llm = LLM(mock_file=DATA / "mock_llm" / "m1_response.json" if args.mock else None, tag="m1")
     segments, violations = m1_segments.run_m1(cues, cuesheet, llm, out_path=args.out)
-    print(f"M1 완료: 구간 {len(segments)}개 → {args.out}")
+    print(f"M1 완료 ({llm.model}): 구간 {len(segments)}개 → {args.out}")
+    for sg in segments:
+        dur = (sg.end_ms - sg.start_ms) / 1000 if sg.end_ms else 0
+        print(f"  {sg.part_type} [{sg.start_cue_id}~{sg.end_cue_id}] {sg.start_ms/1000:.0f}~{sg.end_ms/1000:.0f}초 ({dur:.0f}초) {sg.label}")
     print(format_report(violations))
 
 
@@ -81,7 +102,7 @@ def cmd_m2(args):
     target = next((s for s in segments if s.part_type == args.pick), None)
     if target is None:
         raise SystemExit(f"선택한 파트 {args.pick} 구간이 없습니다")
-    llm = LLM(mock_file=DATA / "mock_llm" / "m2_response.json" if args.mock else None)
+    llm = LLM(mock_file=DATA / "mock_llm" / "m2_response.json" if args.mock else None, tag=f"m2-{args.pick}")
     outdir = Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
     cap_path = outdir / f"{args.pick.lower()}_captions.json"
