@@ -18,7 +18,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 from api import jobs, settings, storage
 from api.schemas import (
@@ -36,6 +36,7 @@ from api.schemas import (
     TimelineOut,
 )
 from api.storage import JobPaths
+from api.viewer import VIEWER_HTML
 
 settings.ensure_runtime_env()
 
@@ -244,6 +245,50 @@ def shorts(job_id: str) -> ShortList:
             thumbnail_url=paths.url(thumb) if thumb.exists() else None,
         ))
     return ShortList(job_id=job_id, shorts=items)
+
+
+# ── 로컬 확인용 뷰어 ──────────────────────────────────────────────────
+@app.get("/view/{job_id}", response_class=HTMLResponse)
+def view(job_id: str) -> str:
+    """브라우저에서 타임라인·쇼츠를 확인한다 (MVP 검증용)."""
+    if jobs.get(job_id) is None:
+        raise HTTPException(404, f"작업을 찾을 수 없습니다: {job_id}")
+    return VIEWER_HTML
+
+
+@app.get("/", response_class=HTMLResponse)
+def index() -> str:
+    """작업 목록 — 최근 것부터."""
+    rows = []
+    if settings.WORKSPACE.exists():
+        items = sorted(settings.WORKSPACE.glob("*/job.json"),
+                       key=lambda p: p.stat().st_mtime, reverse=True)
+        for f in items[:20]:
+            try:
+                st = storage.read_json(f)
+            except (OSError, ValueError):
+                continue
+            jid = f.parent.name
+            rows.append(
+                f'<tr><td><a href="/view/{jid}">{jid}</a></td>'
+                f'<td>{st.get("status", "?")}</td>'
+                f'<td>{st.get("chapter_count") or "-"}</td>'
+                f'<td>{st.get("candidate_count") or "-"}</td>'
+                f'<td>{st.get("short_count") or "-"}</td></tr>')
+    body = "".join(rows) or '<tr><td colspan="5">작업이 없습니다</td></tr>'
+    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<title>하이라이트 쇼츠 자동화</title><style>
+body{{background:#0f0e13;color:#eceaf2;font-family:"Malgun Gothic",sans-serif;padding:40px}}
+table{{border-collapse:collapse;font-size:14px}}
+th,td{{padding:8px 16px;border-bottom:1px solid #2c2a36;text-align:left}}
+th{{color:#8f8b9c;font-size:12px}} a{{color:#ff8a5c}}
+</style></head><body>
+<h1 style="font-size:20px">하이라이트 쇼츠 자동화</h1>
+<p style="color:#8f8b9c;font-size:13px">모델 {settings.LLM_MODEL} · STT {settings.STT_MODEL}</p>
+<table><tr><th>작업</th><th>상태</th><th>챕터</th><th>후보</th><th>쇼츠</th></tr>
+{body}</table>
+<p style="color:#8f8b9c;font-size:12px;margin-top:24px">API 문서: <a href="/docs">/docs</a></p>
+</body></html>"""
 
 
 # ── 파일 서빙 ─────────────────────────────────────────────────────────
