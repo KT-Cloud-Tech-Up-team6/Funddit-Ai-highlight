@@ -1,0 +1,572 @@
+{
+ "_note": "음성 인식 정답셋. 방송 화면 자막에서 확인한 값만 포함한다. 진행자가 말하지 않고 화면에만 나오는 값은 제외했다 (월 할부금 27,723원 등 — STT가 못 받아쓴 게 아니라 발화가 없다).",
+ "_metric": "accept 중 하나가 min_count회 이상 등장하면 통과. reject가 나오면 오인식.",
+ "cases": [
+  {
+   "id": "stt_001",
+   "video": "roborock_v2.mp4",
+   "keyword": "로보락(브랜드)",
+   "accept": [
+    "로보락"
+   ],
+   "min_count": 8,
+   "reject": [
+    "로봐락",
+    "로보라기"
+   ]
+  },
+  {
+   "id": "stt_002",
+   "video": "roborock_v2.mp4",
+   "keyword": "F25(모델명)",
+   "accept": [
+    "F25",
+    "에프25",
+    "에프 25"
+   ],
+   "min_count": 5,
+   "reject": []
+  },
+  {
+   "id": "stt_003",
+   "video": "roborock_v2.mp4",
+   "keyword": "20,000Pa(흡입력)",
+   "accept": [
+    "20,000Pa",
+    "2만 파스칼",
+    "이만 파스칼",
+    "2만 파스칼",
+    "20000Pa"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_004",
+   "video": "roborock_v2.mp4",
+   "keyword": "90도(세척/건조)",
+   "accept": [
+    "90도"
+   ],
+   "min_count": 5,
+   "reject": []
+  },
+  {
+   "id": "stt_005",
+   "video": "roborock_v2.mp4",
+   "keyword": "0%(머리카락 엉킴)",
+   "accept": [
+    "0%",
+    "제로"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_006",
+   "video": "roborock_v2.mp4",
+   "keyword": "99.9%(살균)",
+   "accept": [
+    "99.9",
+    "99.99"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_007",
+   "video": "roborock_v2.mp4",
+   "keyword": "180도(플랫)",
+   "accept": [
+    "180도"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_008",
+   "video": "roborock_v2.mp4",
+   "keyword": "20만 원(할인)",
+   "accept": [
+    "20만 원",
+    "20만원",
+    "이십만"
+   ],
+   "min_count": 5,
+   "reject": []
+  },
+  {
+   "id": "stt_009",
+   "video": "roborock_v2.mp4",
+   "keyword": "40만 원대(방송가)",
+   "accept": [
+    "40만 원대",
+    "40만원대"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_010",
+   "video": "roborock_v2.mp4",
+   "keyword": "69만 9천 원(정가)",
+   "accept": [
+    "69만 9천",
+    "699,000",
+    "70만 원"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_011",
+   "video": "roborock_v2.mp4",
+   "keyword": "18개월(무이자)",
+   "accept": [
+    "18개월",
+    "십팔개월"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_012",
+   "video": "roborock_v2.mp4",
+   "keyword": "열풍 건조",
+   "accept": [
+    "열풍 건조",
+    "열풍건조"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_013",
+   "video": "roborock_v2.mp4",
+   "keyword": "위대한 쇼픽(프로그램)",
+   "accept": [
+    "쇼픽"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_014",
+   "video": "roborock_v2.mp4",
+   "keyword": "백화점 판매 동일",
+   "accept": [
+    "백화점"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_015",
+   "video": "roborock_v2.mp4",
+   "keyword": "공짜 찬스",
+   "accept": [
+    "공짜 찬스",
+    "공짜찬스"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_016",
+   "video": "roborock_v2.mp4",
+   "keyword": "물걸레",
+   "accept": [
+    "물걸레"
+   ],
+   "min_count": 5,
+   "reject": []
+  },
+  {
+   "id": "stt_017",
+   "video": "video2.mp4",
+   "keyword": "올리고365(제품명)",
+   "accept": [
+    "올리고 365",
+    "올리고365",
+    "올리고삼육오",
+    "ALLYGO"
+   ],
+   "min_count": 8,
+   "reject": [
+    "얼리고",
+    "알리고 3",
+    "올리고 삼육호"
+   ]
+  },
+  {
+   "id": "stt_018",
+   "video": "video2.mp4",
+   "keyword": "고주파",
+   "accept": [
+    "고주파"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_019",
+   "video": "video2.mp4",
+   "keyword": "심부열",
+   "accept": [
+    "심부열"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_020",
+   "video": "video2.mp4",
+   "keyword": "47만(진동수)",
+   "accept": [
+    "47만",
+    "사십칠만"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_021",
+   "video": "video2.mp4",
+   "keyword": "3일 무료체험",
+   "accept": [
+    "3일",
+    "삼일"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_022",
+   "video": "video2.mp4",
+   "keyword": "30분(사용시간)",
+   "accept": [
+    "30분",
+    "삼십분"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_023",
+   "video": "video2.mp4",
+   "keyword": "10단계(강도)",
+   "accept": [
+    "10단계",
+    "십단계"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_024",
+   "video": "video2.mp4",
+   "keyword": "300억(매출)",
+   "accept": [
+    "300억",
+    "삼백억"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_025",
+   "video": "video2.mp4",
+   "keyword": "70만 원(추첨)",
+   "accept": [
+    "70만 원",
+    "70만원",
+    "칠십만"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_026",
+   "video": "video2.mp4",
+   "keyword": "18.75g(금)",
+   "accept": [
+    "18.75",
+    "18.75g"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_027",
+   "video": "video2.mp4",
+   "keyword": "식약처",
+   "accept": [
+    "식약처",
+    "시각처"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_028",
+   "video": "video2.mp4",
+   "keyword": "의료기기",
+   "accept": [
+    "의료기기",
+    "의교기기"
+   ],
+   "min_count": 4,
+   "reject": []
+  },
+  {
+   "id": "stt_029",
+   "video": "video2.mp4",
+   "keyword": "3등급",
+   "accept": [
+    "3등급",
+    "삼등급"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_030",
+   "video": "video2.mp4",
+   "keyword": "통증 완화",
+   "accept": [
+    "통증 완화",
+    "통증완화"
+   ],
+   "min_count": 5,
+   "reject": []
+  },
+  {
+   "id": "stt_031",
+   "video": "video2.mp4",
+   "keyword": "NS홈쇼핑",
+   "accept": [
+    "NS홈쇼핑",
+    "엔에스홈쇼핑"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_032",
+   "video": "video2.mp4",
+   "keyword": "무료 체험",
+   "accept": [
+    "무료 체험",
+    "무료체험"
+   ],
+   "min_count": 4,
+   "reject": []
+  },
+  {
+   "id": "stt_033",
+   "video": "video2.mp4",
+   "keyword": "렌탈",
+   "accept": [
+    "렌탈",
+    "렌털"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_034",
+   "video": "roborock_f25.mp4",
+   "keyword": "로보락(브랜드)",
+   "accept": [
+    "로보락"
+   ],
+   "min_count": 5,
+   "reject": [
+    "로봐락",
+    "로보라 ",
+    "로보락이 만든"
+   ]
+  },
+  {
+   "id": "stt_035",
+   "video": "roborock_f25.mp4",
+   "keyword": "F25(모델명)",
+   "accept": [
+    "F25",
+    "에프25",
+    "에프 25"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_036",
+   "video": "roborock_f25.mp4",
+   "keyword": "20,000Pa(흡입력)",
+   "accept": [
+    "20,000Pa",
+    "2만 파스칼",
+    "이만 파스칼",
+    "2만Pa",
+    "20000Pa"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_037",
+   "video": "roborock_f25.mp4",
+   "keyword": "180도",
+   "accept": [
+    "180도"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_038",
+   "video": "roborock_f25.mp4",
+   "keyword": "12.5cm",
+   "accept": [
+    "12.5cm",
+    "12.5 cm",
+    "12.5센티"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_039",
+   "video": "roborock_f25.mp4",
+   "keyword": "90도(온수/건조)",
+   "accept": [
+    "90도"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_040",
+   "video": "roborock_f25.mp4",
+   "keyword": "20만 원(할인)",
+   "accept": [
+    "20만 원",
+    "20만원",
+    "이십만 원"
+   ],
+   "min_count": 3,
+   "reject": []
+  },
+  {
+   "id": "stt_041",
+   "video": "roborock_f25.mp4",
+   "keyword": "40만 원대",
+   "accept": [
+    "40만 원대",
+    "40만원대",
+    "사십만 원대"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_042",
+   "video": "roborock_f25.mp4",
+   "keyword": "60만 원대",
+   "accept": [
+    "60만 원대",
+    "60만원대"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_043",
+   "video": "roborock_f25.mp4",
+   "keyword": "69만 9천 원(정가)",
+   "accept": [
+    "69만 9천",
+    "699,000",
+    "육십구만 구천"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_044",
+   "video": "roborock_f25.mp4",
+   "keyword": "925원(일 환산)",
+   "accept": [
+    "925원",
+    "925 원"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_045",
+   "video": "roborock_f25.mp4",
+   "keyword": "월 2만 원대",
+   "accept": [
+    "2만 원대",
+    "2만원대"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_046",
+   "video": "roborock_f25.mp4",
+   "keyword": "0%(엉킴)",
+   "accept": [
+    "0%",
+    "0 %",
+    "영 퍼센트"
+   ],
+   "min_count": 2,
+   "reject": []
+  },
+  {
+   "id": "stt_047",
+   "video": "roborock_f25.mp4",
+   "keyword": "무이자",
+   "accept": [
+    "무이자"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_048",
+   "video": "roborock_f25.mp4",
+   "keyword": "열풍건조",
+   "accept": [
+    "열풍건조",
+    "열풍 건조"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_049",
+   "video": "roborock_f25.mp4",
+   "keyword": "위대한 쇼픽(프로그램명)",
+   "accept": [
+    "쇼픽"
+   ],
+   "min_count": 1,
+   "reject": []
+  },
+  {
+   "id": "stt_050",
+   "video": "roborock_f25.mp4",
+   "keyword": "공짜 찬스",
+   "accept": [
+    "공짜 찬스",
+    "공짜찬스"
+   ],
+   "min_count": 2,
+   "reject": []
+  }
+ ]
+}

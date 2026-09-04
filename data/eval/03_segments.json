@@ -1,0 +1,180 @@
+{
+ "_note": "구간 분할 정답셋. 정답 구간은 반드시 60~120초로 잡는다 — 프롬프트가 요구하는 길이와 정답이 다르면 규칙을 지킨 모델이 감점된다 (실제로 이 실수로 순위가 뒤집힌 적이 있다). 한 파트에 정답 후보를 여러 개 두고 최대 IoU로 채점한다.",
+ "_metric": "IoU = 교집합/합집합. expected_absent인 파트를 반환하면 오탐.",
+ "cases": [
+  {
+   "id": "seg_001",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 256000,
+   "end_ms": 346000,
+   "duration_sec": 90.0,
+   "desc": "고추기름·오염물 청소 시연 — 진공+물걸레 동시 (90초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_002",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 305000,
+   "end_ms": 395000,
+   "duration_sec": 90.0,
+   "desc": "오염물 제거 후 뽀송한 마무리까지 (90초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_003",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 460000,
+   "end_ms": 550000,
+   "duration_sec": 90.0,
+   "desc": "머리카락 엉킴 0% 확인 + 걸름망 분리 + 자동 세척 진입 (90초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_004",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 513000,
+   "end_ms": 613000,
+   "duration_sec": 100.0,
+   "desc": "자동 세척 버튼 → 90도 온수 세척 → 열풍 건조 (100초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_005",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P3",
+   "start_ms": 154000,
+   "end_ms": 244000,
+   "duration_sec": 90.0,
+   "desc": "백화점 동일 모델·최신상 + 20만원 즉시 할인 + 40만원대 + 공짜 찬스 (90초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_006",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P3",
+   "start_ms": 623000,
+   "end_ms": 700000,
+   "duration_sec": 77.0,
+   "desc": "최신상 20만원 할인, 40만원대, 공짜 찬스 2명 (77초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_007",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P4",
+   "start_ms": 196000,
+   "end_ms": 256000,
+   "duration_sec": 60.0,
+   "desc": "2만 파스칼 흡입력 + 엉킴 0% + 90도 세척·건조 + 살균 (60초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_008",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P4",
+   "start_ms": 395000,
+   "end_ms": 490000,
+   "duration_sec": 95.0,
+   "desc": "흡입력 2만Pa 시연 + 180도 풀플랫 + 엉킴 0% (95초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_009",
+   "video": "roborock_v2.mp4",
+   "transcript": "rb2_transcript_large.json",
+   "part_type": "P5",
+   "start_ms": null,
+   "end_ms": null,
+   "desc": "P5는 이 방송에 없음 — 반환하면 오탐",
+   "expected_absent": true
+  },
+  {
+   "id": "seg_010",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 18900,
+   "end_ms": 105900,
+   "duration_sec": 87.0,
+   "desc": "발 올리는 시연 + 고주파/심부열 원리 + 강도·시간 설명 (87초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_011",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P1",
+   "start_ms": 266100,
+   "end_ms": 330800,
+   "duration_sec": 64.7,
+   "desc": "기기에 양발 올리는 시연 → 고주파 에너지 → 47만 진동 → 심부열 (60초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_012",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P3",
+   "start_ms": 117000,
+   "end_ms": 180000,
+   "duration_sec": 63.0,
+   "desc": "통증 완화 확언 + 3일 무료체험 + 현금 70만원 추첨 + 순금 18.75g 7명 (60초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_013",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P3",
+   "start_ms": 380400,
+   "end_ms": 443100,
+   "duration_sec": 62.7,
+   "desc": "번호만 남기면 3일 무료체험, 올리고 마스터 방문 안내 (63초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_014",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P4",
+   "start_ms": 60000,
+   "end_ms": 127400,
+   "duration_sec": 67.4,
+   "desc": "적용 부위 + 강도 1~10단계 + 1회 30분 + 국내 생산 + 의료기기 3등급 (67초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_015",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P4",
+   "start_ms": 266100,
+   "end_ms": 330800,
+   "duration_sec": 64.7,
+   "desc": "고주파 원리, 1초당 47만 번 진동, 심부열 발생 (65초)",
+   "length_rule_ok": true
+  },
+  {
+   "id": "seg_016",
+   "video": "video2.mp4",
+   "transcript": "v2_transcript_large.json",
+   "part_type": "P5",
+   "start_ms": null,
+   "end_ms": null,
+   "desc": "P5는 이 방송에 없음 — 반환하면 오탐",
+   "expected_absent": true
+  }
+ ]
+}

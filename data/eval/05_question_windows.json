@@ -1,0 +1,43 @@
+{
+ "_note": "질문 집중 구간 정답셋. 실제 방송 흐름(가격 안내·시연·마감 임박)에 맞춰 댓글을 배치했다. 판별은 모델이 아니라 코드(댓글 수 세기)가 한다.",
+ "_metric": "60초 창에 댓글 8건 이상. 정답 구간과 IoU 0.5 이상이면 검출 성공.",
+ "cases": [
+  {
+   "id": "p2_001",
+   "video": "roborock_v2.mp4",
+   "comments_file": "05_comments_roborock_v2.json",
+   "start_ms": 130000,
+   "end_ms": 240000,
+   "peak_count": 12,
+   "context": "가격 안내 직후 — 할인·결제 관련 질문"
+  },
+  {
+   "id": "p2_002",
+   "video": "roborock_v2.mp4",
+   "comments_file": "05_comments_roborock_v2.json",
+   "start_ms": 430000,
+   "end_ms": 520000,
+   "peak_count": 9,
+   "context": "엉킴 시연 직후 — 성능·소모품 질문"
+  },
+  {
+   "id": "p2_003",
+   "video": "roborock_v2.mp4",
+   "comments_file": "05_comments_roborock_v2.json",
+   "start_ms": 590000,
+   "end_ms": 680000,
+   "peak_count": 8,
+   "context": "마감 임박 — 구매·배송 질문"
+  },
+  {
+   "id": "p2_004",
+   "video": "(any)",
+   "comments_file": "05_comments_sparse.json",
+   "start_ms": null,
+   "end_ms": null,
+   "peak_count": 0,
+   "expected_absent": true,
+   "context": "댓글이 드문 방송 — P2 구간이 나오면 오탐"
+  }
+ ]
+}

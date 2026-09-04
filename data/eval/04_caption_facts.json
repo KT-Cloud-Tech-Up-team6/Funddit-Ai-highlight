@@ -1,0 +1,391 @@
+{
+ "_note": "포인트 자막 정답셋. 구간별로 '반드시 들어가야 할 사실'을 정의한다. 표기 흔들림을 허용하도록 동의어를 함께 등록한다 (20,000Pa = 2만 파스칼 = 이만 파스칼).",
+ "_metric": "자막 텍스트에 accept 중 하나라도 포함되면 hit. 커버리지 = hit/전체.",
+ "cases": [
+  {
+   "id": "cap_001",
+   "video": "roborock_v2.mp4",
+   "part_type": "P1",
+   "fact": "진공+물걸레 동시",
+   "accept": [
+    "진공",
+    "물걸레",
+    "동시"
+   ]
+  },
+  {
+   "id": "cap_002",
+   "video": "roborock_v2.mp4",
+   "part_type": "P1",
+   "fact": "오염물 제거",
+   "accept": [
+    "기름",
+    "오염",
+    "먼지",
+    "부스러기",
+    "깨끗"
+   ]
+  },
+  {
+   "id": "cap_003",
+   "video": "roborock_v2.mp4",
+   "part_type": "P1",
+   "fact": "머리카락 엉킴 0%",
+   "accept": [
+    "0%",
+    "제로",
+    "엉킴",
+    "머리카락"
+   ]
+  },
+  {
+   "id": "cap_004",
+   "video": "roborock_v2.mp4",
+   "part_type": "P1",
+   "fact": "90도 세척",
+   "accept": [
+    "90도",
+    "온수",
+    "세척"
+   ]
+  },
+  {
+   "id": "cap_005",
+   "video": "roborock_v2.mp4",
+   "part_type": "P3",
+   "fact": "20만원 할인",
+   "accept": [
+    "20만",
+    "200,000"
+   ]
+  },
+  {
+   "id": "cap_006",
+   "video": "roborock_v2.mp4",
+   "part_type": "P3",
+   "fact": "40만원대",
+   "accept": [
+    "40만",
+    "499,000",
+    "49만"
+   ]
+  },
+  {
+   "id": "cap_007",
+   "video": "roborock_v2.mp4",
+   "part_type": "P3",
+   "fact": "공짜 찬스",
+   "accept": [
+    "공짜",
+    "무료",
+    "2명",
+    "두 분"
+   ]
+  },
+  {
+   "id": "cap_008",
+   "video": "roborock_v2.mp4",
+   "part_type": "P3",
+   "fact": "백화점 동일 모델",
+   "accept": [
+    "백화점",
+    "최신상"
+   ]
+  },
+  {
+   "id": "cap_009",
+   "video": "roborock_v2.mp4",
+   "part_type": "P4",
+   "fact": "20,000Pa 흡입력",
+   "accept": [
+    "20,000Pa",
+    "2만 파스칼",
+    "2만Pa",
+    "파스칼"
+   ]
+  },
+  {
+   "id": "cap_010",
+   "video": "roborock_v2.mp4",
+   "part_type": "P4",
+   "fact": "엉킴 0%",
+   "accept": [
+    "0%",
+    "제로",
+    "엉킴"
+   ]
+  },
+  {
+   "id": "cap_011",
+   "video": "roborock_v2.mp4",
+   "part_type": "P4",
+   "fact": "90도 세척·건조",
+   "accept": [
+    "90도"
+   ]
+  },
+  {
+   "id": "cap_012",
+   "video": "roborock_v2.mp4",
+   "part_type": "P4",
+   "fact": "살균",
+   "accept": [
+    "살균",
+    "99.9"
+   ]
+  },
+  {
+   "id": "cap_013",
+   "video": "video2.mp4",
+   "part_type": "P1",
+   "fact": "고주파/심부열",
+   "accept": [
+    "고주파",
+    "심부열"
+   ]
+  },
+  {
+   "id": "cap_014",
+   "video": "video2.mp4",
+   "part_type": "P1",
+   "fact": "통증 완화",
+   "accept": [
+    "통증",
+    "완화"
+   ]
+  },
+  {
+   "id": "cap_015",
+   "video": "video2.mp4",
+   "part_type": "P1",
+   "fact": "10단계 강도",
+   "accept": [
+    "10단계",
+    "1~10",
+    "10"
+   ]
+  },
+  {
+   "id": "cap_016",
+   "video": "video2.mp4",
+   "part_type": "P1",
+   "fact": "30분 사용",
+   "accept": [
+    "30분"
+   ]
+  },
+  {
+   "id": "cap_017",
+   "video": "video2.mp4",
+   "part_type": "P3",
+   "fact": "3일 무료체험",
+   "accept": [
+    "3일",
+    "무료 체험",
+    "무료체험"
+   ]
+  },
+  {
+   "id": "cap_018",
+   "video": "video2.mp4",
+   "part_type": "P3",
+   "fact": "현금 70만원 추첨",
+   "accept": [
+    "70만",
+    "추첨"
+   ]
+  },
+  {
+   "id": "cap_019",
+   "video": "video2.mp4",
+   "part_type": "P3",
+   "fact": "순금 18.75g",
+   "accept": [
+    "18.75",
+    "순금",
+    "금"
+   ]
+  },
+  {
+   "id": "cap_020",
+   "video": "video2.mp4",
+   "part_type": "P3",
+   "fact": "번호만 남기면",
+   "accept": [
+    "번호",
+    "전화"
+   ]
+  },
+  {
+   "id": "cap_021",
+   "video": "video2.mp4",
+   "part_type": "P4",
+   "fact": "식약처 의료기기",
+   "accept": [
+    "식약처",
+    "의료기기"
+   ]
+  },
+  {
+   "id": "cap_022",
+   "video": "video2.mp4",
+   "part_type": "P4",
+   "fact": "3등급",
+   "accept": [
+    "3등급"
+   ]
+  },
+  {
+   "id": "cap_023",
+   "video": "video2.mp4",
+   "part_type": "P4",
+   "fact": "47만 진동",
+   "accept": [
+    "47만"
+   ]
+  },
+  {
+   "id": "cap_024",
+   "video": "video2.mp4",
+   "part_type": "P4",
+   "fact": "국내 생산",
+   "accept": [
+    "국내"
+   ]
+  },
+  {
+   "id": "cap_025",
+   "video": "roborock_f25.mp4",
+   "part_type": "P1",
+   "fact": "자동 세척",
+   "accept": [
+    "자동 세척",
+    "자동세척",
+    "셀프 세척"
+   ]
+  },
+  {
+   "id": "cap_026",
+   "video": "roborock_f25.mp4",
+   "part_type": "P1",
+   "fact": "90도 온수",
+   "accept": [
+    "90도",
+    "90℃",
+    "온수"
+   ]
+  },
+  {
+   "id": "cap_027",
+   "video": "roborock_f25.mp4",
+   "part_type": "P1",
+   "fact": "열풍 건조",
+   "accept": [
+    "열풍",
+    "건조"
+   ]
+  },
+  {
+   "id": "cap_028",
+   "video": "roborock_f25.mp4",
+   "part_type": "P1",
+   "fact": "냄새 해결",
+   "accept": [
+    "냄새"
+   ]
+  },
+  {
+   "id": "cap_029",
+   "video": "roborock_f25.mp4",
+   "part_type": "P3",
+   "fact": "20만 원 할인",
+   "accept": [
+    "20만 원",
+    "20만원",
+    "200,000원"
+   ]
+  },
+  {
+   "id": "cap_030",
+   "video": "roborock_f25.mp4",
+   "part_type": "P3",
+   "fact": "40만 원대",
+   "accept": [
+    "40만 원대",
+    "40만원대",
+    "499,000",
+    "49만 9천"
+   ]
+  },
+  {
+   "id": "cap_031",
+   "video": "roborock_f25.mp4",
+   "part_type": "P3",
+   "fact": "공짜 찬스 2명",
+   "accept": [
+    "공짜",
+    "무료 증정",
+    "2명",
+    "두 분"
+   ]
+  },
+  {
+   "id": "cap_032",
+   "video": "roborock_f25.mp4",
+   "part_type": "P3",
+   "fact": "방송 한정",
+   "accept": [
+    "방송에서만",
+    "방송 한정",
+    "방송 중",
+    "지금만",
+    "즉시"
+   ]
+  },
+  {
+   "id": "cap_033",
+   "video": "roborock_f25.mp4",
+   "part_type": "P4",
+   "fact": "흡입력 2만Pa",
+   "accept": [
+    "20,000Pa",
+    "2만 파스칼",
+    "2만Pa",
+    "20000Pa",
+    "이만 파스칼"
+   ]
+  },
+  {
+   "id": "cap_034",
+   "video": "roborock_f25.mp4",
+   "part_type": "P4",
+   "fact": "180도 플랫",
+   "accept": [
+    "180도",
+    "플랫"
+   ]
+  },
+  {
+   "id": "cap_035",
+   "video": "roborock_f25.mp4",
+   "part_type": "P4",
+   "fact": "12.5cm",
+   "accept": [
+    "12.5cm",
+    "12.5"
+   ]
+  },
+  {
+   "id": "cap_036",
+   "video": "roborock_f25.mp4",
+   "part_type": "P4",
+   "fact": "엉킴 0%",
+   "accept": [
+    "0%",
+    "제로",
+    "엉킴",
+    "꼬임"
+   ]
+  }
+ ]
+}

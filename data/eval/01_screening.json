@@ -1,0 +1,152 @@
+{
+ "_note": "소재 적합성 판정 정답셋. 실측 3건은 실제 영상에서 측정한 값, synthetic은 임계값(분당 10회) 경계 동작을 검증하는 합성 케이스.",
+ "_metric": "cuts_per_min >= 10 이면 suitable=true",
+ "cases": [
+  {
+   "id": "scr_001",
+   "source": "measured",
+   "video": "roborock_f25.mp4",
+   "duration_sec": 560,
+   "total_cuts": 20,
+   "cuts_per_min": 2.1,
+   "moving_sec": 9,
+   "still_pct": 98.2,
+   "expected_suitable": false,
+   "note": "9분 방송. 컷이 28초에 한 번. 실제로 쇼츠 만들었을 때 화면이 멈춘 것처럼 보였다."
+  },
+  {
+   "id": "scr_002",
+   "source": "measured",
+   "video": "roborock_v2.mp4",
+   "duration_sec": 1249,
+   "total_cuts": 985,
+   "cuts_per_min": 47.3,
+   "moving_sec": 333,
+   "still_pct": 54.8,
+   "expected_suitable": true,
+   "note": "20분 방송. 같은 제품이나 편집 방식이 다르다."
+  },
+  {
+   "id": "scr_003",
+   "source": "measured",
+   "video": "video2.mp4",
+   "duration_sec": 443,
+   "total_cuts": 333,
+   "cuts_per_min": 45.1,
+   "moving_sec": 300,
+   "still_pct": 16.0,
+   "expected_suitable": true,
+   "note": "7분 방송. 정지 비율이 가장 낮다."
+  },
+  {
+   "id": "scr_004",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 0,
+   "cuts_per_min": 0.0,
+   "moving_sec": 0,
+   "still_pct": 100.0,
+   "expected_suitable": false,
+   "note": "정지 화면만 있는 영상 (슬라이드)"
+  },
+  {
+   "id": "scr_005",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 45,
+   "cuts_per_min": 4.5,
+   "moving_sec": 27,
+   "still_pct": 91.0,
+   "expected_suitable": false,
+   "note": "컷이 드문 영상"
+  },
+  {
+   "id": "scr_006",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 94,
+   "cuts_per_min": 9.4,
+   "moving_sec": 56,
+   "still_pct": 81.2,
+   "expected_suitable": false,
+   "note": "임계값 바로 아래"
+  },
+  {
+   "id": "scr_007",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 99,
+   "cuts_per_min": 9.9,
+   "moving_sec": 59,
+   "still_pct": 80.2,
+   "expected_suitable": false,
+   "note": "임계값 직전"
+  },
+  {
+   "id": "scr_008",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 100,
+   "cuts_per_min": 10.0,
+   "moving_sec": 60,
+   "still_pct": 80.0,
+   "expected_suitable": true,
+   "note": "임계값 정확히"
+  },
+  {
+   "id": "scr_009",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 106,
+   "cuts_per_min": 10.6,
+   "moving_sec": 63,
+   "still_pct": 78.8,
+   "expected_suitable": true,
+   "note": "임계값 바로 위"
+  },
+  {
+   "id": "scr_010",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 180,
+   "cuts_per_min": 18.0,
+   "moving_sec": 108,
+   "still_pct": 64.0,
+   "expected_suitable": true,
+   "note": "보통 편집"
+  },
+  {
+   "id": "scr_011",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 325,
+   "cuts_per_min": 32.5,
+   "moving_sec": 195,
+   "still_pct": 35.0,
+   "expected_suitable": true,
+   "note": "빠른 편집"
+  },
+  {
+   "id": "scr_012",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 600,
+   "cuts_per_min": 60.0,
+   "moving_sec": 360,
+   "still_pct": 0,
+   "expected_suitable": true,
+   "note": "매우 빠른 편집"
+  },
+  {
+   "id": "scr_013",
+   "source": "synthetic",
+   "duration_sec": 600,
+   "total_cuts": 1200,
+   "cuts_per_min": 120.0,
+   "moving_sec": 720,
+   "still_pct": 0,
+   "expected_suitable": true,
+   "note": "극단적으로 빠른 컷"
+  }
+ ]
+}

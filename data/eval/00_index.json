@@ -1,0 +1,37 @@
+{
+ "_note": "하이라이트 쇼츠 자동화 평가 데이터셋. 영역별로 나뉜다.",
+ "_created": "2026-09-04",
+ "areas": [
+  {
+   "file": "01_screening.json",
+   "area": "소재 적합성",
+   "count": 13,
+   "metric": "분당 컷 10회 기준 적합 판정 정확도"
+  },
+  {
+   "file": "02_stt_keywords.json",
+   "area": "음성 인식",
+   "count": 50,
+   "metric": "키워드 정확도, 오인식 건수"
+  },
+  {
+   "file": "03_segments.json",
+   "area": "구간 분할",
+   "count": 16,
+   "metric": "파트 검출률, IoU, 길이 준수율, 오탐"
+  },
+  {
+   "file": "04_caption_facts.json",
+   "area": "포인트 자막",
+   "count": 36,
+   "metric": "핵심 사실 커버리지"
+  },
+  {
+   "file": "05_question_windows.json",
+   "area": "질문 집중 구간",
+   "count": 4,
+   "metric": "구간 검출률, 오탐"
+  }
+ ],
+ "total": 119
+}
