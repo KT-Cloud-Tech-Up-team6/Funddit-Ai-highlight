@@ -6,34 +6,56 @@ from pathlib import Path
 
 from poc.models import Caption
 
+# 자막 폰트 — Han Santteut Dotum Bold. 맑은 고딕보다 자간이 넓고 획이 둥글어 쇼츠에 어울린다.
+# 시스템에 없으면 libass가 대체 폰트를 쓰므로 FONT_FALLBACK을 함께 지정한다.
+FONT = "Han Santteut Dotum"
+FONT_FALLBACK = "Malgun Gothic"
+
+# 파스텔 팔레트 (ASS는 BGR 순서. &HAABBGGRR 형식에서 AA=00이 불투명)
+#   형광색 대신 채도를 낮춘 색을 쓴다. 어두운 영상 위에서도 눈이 편하다.
+C_WHITE = "&H00FFFFFF"     # 기본 흰색
+C_CREAM = "&H00E8F4FF"     # 크림 (아주 옅은 노랑) — 제목
+C_MINT = "&H00D4F0D0"      # 민트 — 기능·스펙
+C_CORAL = "&H00A0A0FF"     # 코랄 (연한 분홍빨강) — 혜택·가격
+C_LAVENDER = "&H00F0D8C0"  # 라벤더 (연한 파랑보라) — 시연 결과
+C_INK = "&H00302820"       # 외곽선 (완전 검정 대신 살짝 따뜻한 먹색)
+C_SHADOW = "&H60000000"    # 그림자 (반투명)
+
+# 숫자·핵심어 강조색 — 코랄. 형광 주황보다 부드럽다.
+HIGHLIGHT_COLOR = "&H007090FF&"
+
 ASS_HEADER = """[Script Info]
 ScriptType: v4.00+
 PlayResX: 1080
 PlayResY: 1920
 WrapStyle: 0
 ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Title,Malgun Gothic,92,&H00FFFFFF,&H00FFFFFF,&H00202020,&H00000000,-1,0,0,0,100,100,2,0,1,7,5,8,50,50,{title_mv},1
-Style: Point,Malgun Gothic,84,&H00FFFFFF,&H00FFFFFF,&H00151515,&H00000000,-1,0,0,0,100,100,1,0,1,7,4,2,50,50,{point_mv},1
-Style: Spec,Malgun Gothic,84,&H00F5F5F5,&H00FFFFFF,&H00151515,&H00000000,-1,0,0,0,100,100,1,0,1,7,4,2,50,50,{point_mv},1
-Style: Benefit,Malgun Gothic,90,&H0000E5FF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,105,105,1,0,1,8,4,2,50,50,{point_mv},1
-Style: Result,Malgun Gothic,88,&H0000FFFF,&H00FFFFFF,&H00101010,&H00000000,-1,0,0,0,100,100,1,0,1,8,4,2,50,50,{point_mv},1
+Style: Title,{font},78,{cream},{white},{ink},{shadow},-1,0,0,0,100,100,3,0,1,5,3,8,60,60,{title_mv},1
+Style: Speech,{font},52,{white},{white},{ink},&H90000000,0,0,0,0,100,100,0,0,3,7,0,2,80,80,{speech_mv},1
+Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
+Style: Spec,{font},80,{mint},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
+Style: Benefit,{font},86,{coral},{white},{ink},{shadow},-1,0,0,0,102,102,2,0,1,6,3,2,60,60,{point_mv},1
+Style: Result,{font},82,{lavender},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
 
-# 강조 유형 → 스타일. benefit(혜택·가격)은 주황, result(시연 결과)는 노랑, spec은 기본 흰색.
-EMPHASIS_STYLE = {"spec": "Spec", "benefit": "Benefit", "result": "Result"}
-HIGHLIGHT_COLOR = "&H0000A5FF&"  # 주황 (BGR) — 숫자·핵심어 강조
+# 강조 유형 → 스타일. 색으로 정보 종류를 구분한다.
+#   spec/feature 민트 (사실·기능)  benefit 코랄 (혜택·가격)  result 라벤더 (시연 결과)
+EMPHASIS_STYLE = {"spec": "Spec", "feature": "Spec",
+                  "benefit": "Benefit", "result": "Result", "story": "Point"}
 
 # 자막 세로 위치 (PlayResY=1920 기준)
-#   crop 모드: 화면이 꽉 차므로 하단 전화번호 띠를 피해 위로 올린다
-#   letterbox 모드: 영상이 가운데 띠로 들어가고 위아래가 여백 → 제목은 위 여백, 자막은 아래 여백에
-MARGIN_CROP = {"title_mv": 200, "point_mv": 380}
-MARGIN_LETTERBOX = {"title_mv": 250, "point_mv": 250}
+#   Title  상단 고정 (제목)
+#   Point  중하단 (강조 문구) — 눈이 가장 먼저 가는 자리
+#   Speech 최하단 작게 (발화 따라감) — 포인트 자막과 겹치지 않게 아래로
+MARGIN_CROP = {"title_mv": 190, "point_mv": 420, "speech_mv": 250}
+MARGIN_LETTERBOX = {"title_mv": 230, "point_mv": 330, "speech_mv": 150}
 
 
 def _ass_time(ms: int) -> str:
@@ -57,15 +79,35 @@ def _with_highlight(c: Caption) -> str:
 
 
 def build_ass(captions: list[Caption], out_path: str | Path, title: str = "", duration_ms: int | None = None,
-              layout: str = "crop") -> Path:
+              layout: str = "crop", speech_cues: list | None = None, seg_start_ms: int = 0) -> Path:
     """포인트 자막 + (선택) 상단 고정 제목. title은 구간 전체(0 ~ duration_ms)에 표시.
 
     layout: "crop"(9:16 꽉 채움) | "letterbox"(원본 비율 유지, 위아래 여백) — 자막 세로 위치가 달라진다."""
     margins = MARGIN_LETTERBOX if layout == "letterbox" else MARGIN_CROP
-    lines = [ASS_HEADER.format(**margins)]
+    lines = [ASS_HEADER.format(
+        font=FONT, white=C_WHITE, cream=C_CREAM, mint=C_MINT,
+        coral=C_CORAL, lavender=C_LAVENDER, ink=C_INK, shadow=C_SHADOW,
+        **margins)]
     if title:
         end = duration_ms if duration_ms else max((c.end_ms for c in captions if c.end_ms), default=0) + 10_000
         lines.append(f"Dialogue: 0,{_ass_time(0)},{_ass_time(end)},Title,,0,0,0,,{_ass_escape(title)}\n")
+    # 전체 자막 — 발화를 따라가는 작은 자막 (하단). 시청자가 내용을 놓치지 않게 한다.
+    for cue in (speech_cues or []):
+        st = cue.start_ms - seg_start_ms
+        en = cue.end_ms - seg_start_ms
+        if en <= 0 or (duration_ms and st >= duration_ms):
+            continue
+        st = max(st, 0)
+        if duration_ms:
+            en = min(en, duration_ms)
+        text = _ass_escape(cue.text)
+        if len(text) > 40:                       # 너무 길면 두 줄로 나눈다
+            mid = text.rfind(" ", 0, len(text) // 2 + 8)
+            if mid > 10:
+                text = text[:mid] + "\\N" + text[mid + 1:]
+        lines.append(f"Dialogue: 0,{_ass_time(st)},{_ass_time(en)},Speech,,0,0,0,,{text}\n")
+
+    # 포인트 자막 — 크게, 색으로 강조
     for c in captions:
         style = EMPHASIS_STYLE.get(c.emphasis, "Point")
         lines.append(

@@ -110,8 +110,17 @@ def cmd_m2(args):
 def cmd_render(args):
     seg, captions = m2_captions.load_captions(args.captions)
     ass_path = Path(args.captions).with_suffix(".ass")
+    speech = None
+    if args.transcript:
+        from poc.transcript import cues_in_range
+        all_cues = load_cues(args.transcript)
+        try:
+            speech = cues_in_range(all_cues, seg.start_cue_id, seg.end_cue_id)
+        except ValueError:
+            speech = [c for c in all_cues if c.end_ms > seg.start_ms and c.start_ms < seg.end_ms]
     render.build_ass(captions, ass_path, title=m2_captions.load_title(args.captions),
-                     duration_ms=seg.end_ms - seg.start_ms, layout=args.layout)
+                     duration_ms=seg.end_ms - seg.start_ms, layout=args.layout,
+                     speech_cues=speech, seg_start_ms=seg.start_ms)
     t0 = time.time()
     out = render.render_short(args.video, seg.start_ms, seg.end_ms, ass_path, args.out,
                               crop_cx=args.crop_cx, vertical=not args.keep_ratio,
@@ -222,6 +231,7 @@ def main():
     s.add_argument("--video", required=True)
     s.add_argument("--captions", required=True, help="m2가 저장한 *_captions.json")
     s.add_argument("--out", required=True)
+    s.add_argument("--transcript", help="전체 자막(발화 따라가는 작은 자막)을 넣으려면 STT 결과 지정")
     s.add_argument("--crop-cx", type=float, default=0.5, help="세로 크롭 중심 가로 위치 0~1 (기본 0.5=중앙)")
     s.add_argument("--keep-ratio", action="store_true", help="세로 크롭 없이 원본 16:9 유지 (1920x1080)")
     s.add_argument("--layout", choices=["crop", "letterbox"], default="letterbox",

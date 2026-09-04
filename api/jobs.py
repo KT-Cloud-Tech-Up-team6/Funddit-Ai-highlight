@@ -304,8 +304,11 @@ def _render_stages(job_id: str, paths: JobPaths, candidate_ids: list[str],
 
         title = m2_captions.load_title(paths.captions(cid))
         duration_ms = seg.end_ms - seg.start_ms
+        # 전체 자막 — 구간 안의 발화를 그대로 따라가는 작은 자막
+        speech = [c for c in cues if c.end_ms > seg.start_ms and c.start_ms < seg.end_ms]
         render.build_ass(captions, paths.ass(cid), title=title,
-                         duration_ms=duration_ms, layout=layout)
+                         duration_ms=duration_ms, layout=layout,
+                         speech_cues=speech, seg_start_ms=seg.start_ms)
 
         _set(job_id, stage_detail=f"{cid} 렌더링 ({n}/{total})",
              progress=round((n - 0.5) / max(total, 1) * 0.9, 2))

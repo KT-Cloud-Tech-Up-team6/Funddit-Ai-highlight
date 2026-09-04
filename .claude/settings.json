@@ -11,7 +11,23 @@
       "Bash(curl -s -X POST -H 'Content-Type: application/json' -d '{\"candidate_ids\":[\"seg_1\",\"p2_0\"],\"layout\":\"letterbox\",\"bg_blur\":true}' http://127.0.0.1:8010/jobs/e2496406cbb1/select)",
       "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1/shorts)",
       "Bash(git commit *)",
-      "Bash(export LLM_USAGE_LOG=out/real/llm_usage.jsonl)"
+      "Bash(export LLM_USAGE_LOG=out/real/llm_usage.jsonl)",
+      "Bash(awk 'NR>3 {printf \"  %6.0fKB  %s\\\\n\", $5/1024, $9}')",
+      "Bash(echo \"전체 경로: C:\\\\\\\\Users\\\\\\\\golds\\\\\\\\highlight-shorts-poc\\\\\\\\docs\\\\\\\\images\")",
+      "Bash(explorer.exe \"C:\\\\Users\\\\golds\\\\highlight-shorts-poc\\\\docs\\\\images\")",
+      "Bash(rm -f \"data/input/roborock_f25.mp4\" \"단 하나로 청소 끝\"*.mp4 \"videoplayback.mp4\" \"videoplayback \\(1\\).mp4\" 2>/dev/null; ls -la data/input/ *.mp4 2>/dev/null | grep -v \"^total\"; echo \"--- 사용 가능 폰트\"; ls /c/Windows/Fonts/ | grep -iE \"^\\(malgun|NanumGothic|NotoSans|Pretendard|SCDream|GmarketSans|Cafe24\\)\" | head -12)",
+      "Read(//c/Windows/Fonts//**)",
+      "Bash(mkdir -p assets/fonts)",
+      "Bash(curl -sL -o Pretendard-Bold.ttf \"https://github.com/orioncactus/pretendard/raw/main/packages/pretendard/dist/public/static/Pretendard-Bold.ttf\")",
+      "Bash(curl -sL -o Pretendard-ExtraBold.ttf \"https://github.com/orioncactus/pretendard/raw/main/packages/pretendard/dist/public/static/Pretendard-ExtraBold.ttf\")",
+      "Bash(awk '{printf \"  %.0fKB  %s\\\\n\", $5/1024, $9}')",
+      "Bash(curl -sL --max-time 120 -o assets/fonts/Pretendard-Bold.ttf \"https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Bold.ttf\")",
+      "Bash(awk '{printf \"%.0fKB\\\\n\", $5/1024}')",
+      "Bash(ls /c/Windows/Fonts/ | grep -iE \"yoon|gmarket|scdream|noto|nanum|binggrae|jalnan|black|heavy|extrabold|Hancom.*\\(Gothic|MinGyo\\)|HY|Santteut\" | head -25)",
+      "Bash(ffprobe -v error -show_entries format=duration -of csv=p=0 data/input/roborock_v2.mp4)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\golds\\highlight-shorts-poc"
     ]
   }
 }
