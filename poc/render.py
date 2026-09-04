@@ -35,7 +35,7 @@ YCbCr Matrix: TV.709
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Title,{font},78,{cream},{white},{ink},{shadow},-1,0,0,0,100,100,3,0,1,5,3,8,60,60,{title_mv},1
-Style: Speech,{font},52,{white},{white},{ink},&H90000000,0,0,0,0,100,100,0,0,3,7,0,2,80,80,{speech_mv},1
+Style: Speech,{font},48,{white},{white},{ink},&H90000000,0,0,0,0,100,100,0,0,3,7,0,2,80,80,{speech_mv},1
 Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
 Style: Spec,{font},80,{mint},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
 Style: Benefit,{font},86,{coral},{white},{ink},{shadow},-1,0,0,0,102,102,2,0,1,6,3,2,60,60,{point_mv},1
@@ -54,8 +54,8 @@ EMPHASIS_STYLE = {"spec": "Spec", "feature": "Spec",
 #   Title  상단 고정 (제목)
 #   Point  중하단 (강조 문구) — 눈이 가장 먼저 가는 자리
 #   Speech 최하단 작게 (발화 따라감) — 포인트 자막과 겹치지 않게 아래로
-MARGIN_CROP = {"title_mv": 190, "point_mv": 420, "speech_mv": 250}
-MARGIN_LETTERBOX = {"title_mv": 230, "point_mv": 330, "speech_mv": 150}
+MARGIN_CROP = {"title_mv": 190, "point_mv": 470, "speech_mv": 210}
+MARGIN_LETTERBOX = {"title_mv": 230, "point_mv": 400, "speech_mv": 120}
 
 
 def _ass_time(ms: int) -> str:

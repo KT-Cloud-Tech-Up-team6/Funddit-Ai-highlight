@@ -24,7 +24,13 @@
       "Bash(curl -sL --max-time 120 -o assets/fonts/Pretendard-Bold.ttf \"https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/packages/pretendard/dist/public/static/Pretendard-Bold.ttf\")",
       "Bash(awk '{printf \"%.0fKB\\\\n\", $5/1024}')",
       "Bash(ls /c/Windows/Fonts/ | grep -iE \"yoon|gmarket|scdream|noto|nanum|binggrae|jalnan|black|heavy|extrabold|Hancom.*\\(Gothic|MinGyo\\)|HY|Santteut\" | head -25)",
-      "Bash(ffprobe -v error -show_entries format=duration -of csv=p=0 data/input/roborock_v2.mp4)"
+      "Bash(ffprobe -v error -show_entries format=duration -of csv=p=0 data/input/roborock_v2.mp4)",
+      "Bash(ffmpeg -y -v error -i out/mvp_final/seg_1.mp4 -ss 47 -frames:v 1 -vf scale=300:533 out/mvp_final/q1.png)",
+      "Bash(ffmpeg -y -v error -i out/mvp_final/seg_0.mp4 -ss 17 -frames:v 1 -vf scale=300:533 out/mvp_final/q2.png)",
+      "Bash(ffmpeg -y -v error -i out/mvp_final/seg_2.mp4 -ss 26 -frames:v 1 -vf scale=300:533 out/mvp_final/q3.png)",
+      "Bash(ffmpeg -y -v error -i out/mvp_final/q1.png -i out/mvp_final/q2.png -i out/mvp_final/q3.png -filter_complex hstack=3 out/mvp_final/preview.png)",
+      "Bash(rm -f out/mvp_final/p1.png out/mvp_final/p2.png out/mvp_final/p3.png out/mvp_final/q*.png)",
+      "Bash(awk 'NR>3{printf \"  %6.1fMB  %s\\\\n\", $5/1048576, $9}')"
     ],
     "additionalDirectories": [
       "c:\\Users\\golds\\highlight-shorts-poc"
