@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pip install -q fastapi uvicorn python-multipart)",
+      "Bash(python -c \"import fastapi, uvicorn, multipart; print\\('fastapi', fastapi.__version__, '/ uvicorn', uvicorn.__version__\\)\")",
+      "Bash(curl -s http://127.0.0.1:8010/health)",
+      "Bash(curl -s -F \"video=@data/input/roborock_f25.mp4\" http://127.0.0.1:8010/screen)",
+      "Bash(curl -s http://127.0.0.1:8010/jobs/792f19caab1c)",
+      "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1)",
+      "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1/candidates)",
+      "Bash(curl -s -X POST -H 'Content-Type: application/json' -d '{\"candidate_ids\":[\"seg_1\",\"p2_0\"],\"layout\":\"letterbox\",\"bg_blur\":true}' http://127.0.0.1:8010/jobs/e2496406cbb1/select)",
+      "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1/shorts)",
+      "Bash(git commit *)"
+    ]
+  }
+}

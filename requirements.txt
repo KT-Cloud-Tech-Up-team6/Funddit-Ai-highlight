@@ -7,3 +7,10 @@ nvidia-cudnn-cu12
 
 # STT 클라우드 (Google Speech-to-Text v2, CFG-2/3) — 서비스 계정 키 필요
 google-cloud-speech>=2.30
+
+# API 서버 (MVP)
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+pillow>=10.0
+numpy>=1.26

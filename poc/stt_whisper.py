@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -31,6 +32,15 @@ def _register_nvidia_dlls() -> None:
             if b.is_dir():
                 os.add_dll_directory(str(b))
                 os.environ["PATH"] = str(b) + os.pathsep + os.environ.get("PATH", "")
+
+
+# 모델 캐시 — large-v3 로드에 수십 초가 걸린다. API 서버에서 호출마다 로드하면 안 된다.
+_MODEL_CACHE: dict[tuple[str, str], tuple] = {}
+_CACHE_LOCK = threading.Lock()
+
+
+class SttUnavailable(RuntimeError):
+    """STT 의존성이 없을 때 발생. SystemExit을 쓰면 서버 프로세스가 죽는다."""
 
 
 def _load_model(model_size: str, device: str):
@@ -66,13 +76,21 @@ def transcribe(
     try:
         import faster_whisper  # noqa: F401
     except ImportError as e:
-        raise SystemExit(
+        raise SttUnavailable(
             "faster-whisper가 설치되어 있지 않습니다: pip install faster-whisper\n"
             "(빠른 확인은 --model small 권장 — large-v3는 CPU에서 10분 영상에 수십 분 걸릴 수 있음)"
         ) from e
 
     t0 = time.time()
-    model, dev = _load_model(model_size, device)
+    key = (model_size, device)
+    with _CACHE_LOCK:
+        cached = _MODEL_CACHE.get(key)
+    if cached is not None:
+        model, dev = cached
+    else:
+        model, dev = _load_model(model_size, device)
+        with _CACHE_LOCK:
+            _MODEL_CACHE[key] = (model, dev)
     t_load = time.time() - t0
     print(f"[stt] 모델 {model_size} 로드 {t_load:.0f}초 ({dev})")
 

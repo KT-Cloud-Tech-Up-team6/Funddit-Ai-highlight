@@ -7,3 +7,4 @@ out/
 eval/results/
 eval/results_archive_*/
 out/archive_*/
+workspace/

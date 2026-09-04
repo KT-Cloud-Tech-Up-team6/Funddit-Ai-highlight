@@ -12,11 +12,14 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
 
-DEFAULT_MODEL = "gemini-3.5-flash-lite"
+# PoC 모델 비교(7등급 x 2영상 x 3회) 결과 확정 — 2026-09-03
+# 근거: 자막 정보량 최다(10개/수치 5개), 최저점수 0.87, 상위권 중 안정성 1위(0.81)
+DEFAULT_MODEL = "gemini-3.6-flash"
 
 # 단가 (USD / 1M tokens). 비용 표 추정용 — None이면 비용을 '?'로 표시한다.
 # Claude: 공식 표(2026-06). Gemini: 공개 가격 기준 추정치(변동 가능). OpenAI: 키 확보 후 확인.
@@ -36,6 +39,17 @@ PRICE_PER_M: dict[str, tuple[float, float] | None] = {
     "claude-sonnet-5": (2.00, 10.00),
     "claude-opus-5": (5.00, 25.00),
 }
+
+
+def _log(msg: str) -> None:
+    """콘솔 인코딩(Windows cp949)이 특수문자를 못 써도 죽지 않게.
+
+    API 서버에서는 print 한 줄의 UnicodeEncodeError가 작업 전체를 실패시킨다."""
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(msg.encode(enc, errors="replace").decode(enc, errors="replace"))
 
 
 def provider_of(model: str) -> str:
@@ -135,7 +149,7 @@ class LLM:
                 if code not in (429, 503, 529, 500, 502) or attempt == 5:
                     raise
                 wait = 5 * 2**attempt
-                print(f"[llm] {self.model} {code} → {wait}초 후 재시도 ({attempt+1}/5)")
+                _log(f"[llm] {self.model} {code} -> {wait}초 후 재시도 ({attempt+1}/5)")
                 time.sleep(wait)
         elapsed = time.time() - t0
 
@@ -157,7 +171,7 @@ class LLM:
         with log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(self.last_usage, ensure_ascii=False) + "\n")
         cost = f"${est:.4f}" if est is not None else "$?"
-        print(f"[llm] {self.model} {self.tag}: in={in_tok} out={out_tok} think={think_tok} {elapsed:.1f}s ≈ {cost}")
+        _log(f"[llm] {self.model} {self.tag}: in={in_tok} out={out_tok} think={think_tok} {elapsed:.1f}s ~ {cost}")
         try:
             return _extract_json(text)
         except json.JSONDecodeError:
