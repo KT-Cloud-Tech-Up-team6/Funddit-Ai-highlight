@@ -24,6 +24,7 @@ from api import jobs, settings, storage
 from api.schemas import (
     Candidate,
     CandidateList,
+    Chapter,
     HealthCheck,
     JobCreated,
     JobState,
@@ -32,6 +33,7 @@ from api.schemas import (
     SelectRequest,
     ShortList,
     ShortOut,
+    TimelineOut,
 )
 from api.storage import JobPaths
 
@@ -141,6 +143,7 @@ def job_state(job_id: str) -> JobState:
         error=job.get("error"),
         screen=ScreenResult(**screen) if screen else None,
         candidate_count=job.get("candidate_count"),
+        chapter_count=job.get("chapter_count"),
         short_count=job.get("short_count"),
         elapsed_sec=job.get("elapsed_sec"),
         stt_reused=job.get("stt_reused", False),
@@ -170,6 +173,30 @@ def candidates(job_id: str) -> CandidateList:
         thumb = paths.thumb(c["id"])
         items.append(Candidate(**c, thumbnail_url=paths.url(thumb) if thumb.exists() else None))
     return CandidateList(job_id=job_id, candidates=items)
+
+
+@app.get("/jobs/{job_id}/timeline", response_model=TimelineOut)
+def timeline(job_id: str) -> TimelineOut:
+    """다시보기 타임라인 — 방송 전체를 주제별 챕터로 나눈 목록.
+
+    쇼츠 후보(/candidates)와 다르다. 후보는 잘라 쓸 구간만 고르지만,
+    타임라인은 방송 전체를 빈틈없이 덮는다."""
+    job = jobs.get(job_id)
+    if job is None:
+        raise HTTPException(404, f"작업을 찾을 수 없습니다: {job_id}")
+    f = JobPaths(job_id).timeline
+    if not f.exists():
+        raise HTTPException(409, f"타임라인이 아직 없습니다 (상태: {job.get('status')})")
+
+    data = storage.read_json(f)
+    chapters = [Chapter(
+        start_ms=c["start_ms"], end_ms=c["end_ms"], timestamp=c["timestamp"],
+        duration_sec=round((c["end_ms"] - c["start_ms"]) / 1000, 1),
+        title=c["title"], category=c["category"],
+        category_name=c["category_name"], summary=c.get("summary", ""),
+    ) for c in data["chapters"]]
+    return TimelineOut(job_id=job_id, chapters=chapters,
+                       warnings=data.get("warnings", []))
 
 
 # ── 2단계: 선택 → 쇼츠 ────────────────────────────────────────────────

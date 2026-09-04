@@ -10,7 +10,8 @@
       "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1/candidates)",
       "Bash(curl -s -X POST -H 'Content-Type: application/json' -d '{\"candidate_ids\":[\"seg_1\",\"p2_0\"],\"layout\":\"letterbox\",\"bg_blur\":true}' http://127.0.0.1:8010/jobs/e2496406cbb1/select)",
       "Bash(curl -s http://127.0.0.1:8010/jobs/e2496406cbb1/shorts)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(export LLM_USAGE_LOG=out/real/llm_usage.jsonl)"
     ]
   }
 }

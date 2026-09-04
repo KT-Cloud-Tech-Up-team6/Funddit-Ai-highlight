@@ -166,14 +166,29 @@ def _analysis_stages(job_id: str, paths: JobPaths, t0: float) -> None:
     segments, violations = m1_segments.run_m1(
         cues, [], llm, out_path=paths.segments, motion=motion, cuts=cuts)
 
-    # ⑤ 후보 목록 구성 + 썸네일
+    # ⑤ 다시보기 타임라인 — 방송 전체를 챕터로 나눈다 (쇼츠 후보와 별개)
+    _set(job_id, status=JobStatus.TIMELINE,
+         stage_detail="다시보기 타임라인 생성", progress=0.8)
+    chapter_count = 0
+    try:
+        from poc import timeline as timeline_mod
+
+        tl_llm = LLM(model=settings.LLM_MODEL, tag=f"timeline-{job_id}")
+        chapters, tl_warnings = timeline_mod.run_timeline(
+            cues, tl_llm, out_path=paths.timeline,
+            comments=comments_mod.load_comments(paths.comments) if paths.comments.exists() else None)
+        chapter_count = len(chapters)
+    except Exception as e:  # noqa: BLE001 — 타임라인 실패가 쇼츠 생성을 막지는 않는다
+        _set(job_id, timeline_error=f"{type(e).__name__}: {e}")
+
+    # ⑥ 후보 목록 구성 + 썸네일
     _set(job_id, stage_detail="후보 썸네일 생성", progress=0.9)
     candidates = _build_candidates(paths, segments, violations, p2_windows)
     storage.write_json(paths.root / "candidates.json", candidates)
 
     _set(job_id, status=JobStatus.READY_FOR_SELECTION,
          stage_detail="판매자 선택 대기", progress=1.0,
-         candidate_count=len(candidates),
+         candidate_count=len(candidates), chapter_count=chapter_count,
          elapsed_sec=round(time.time() - t0, 1))
 
 

@@ -14,6 +14,7 @@ class JobStatus(str, Enum):
     REJECTED = "rejected"                  # 소재 부적합 (컷이 너무 적음)
     TRANSCRIBING = "transcribing"          # 음성 인식 중 (가장 오래 걸림)
     SEGMENTING = "segmenting"              # 구간 분할 중
+    TIMELINE = "timeline"                  # 다시보기 타임라인 생성 중
     READY_FOR_SELECTION = "ready_for_selection"   # 후보 준비 완료 — 판매자 선택 대기
     RENDERING = "rendering"                # 선택된 구간 자막·렌더링 중
     DONE = "done"                          # 쇼츠 완성
@@ -52,9 +53,28 @@ class JobState(BaseModel):
     error: str | None = None
     screen: ScreenResult | None = None
     candidate_count: int | None = None
+    chapter_count: int | None = None
     short_count: int | None = None
     elapsed_sec: float | None = None
     stt_reused: bool = False
+
+
+class Chapter(BaseModel):
+    """다시보기 타임라인의 한 구간."""
+    start_ms: int
+    end_ms: int
+    timestamp: str                # "02:34" 형식 — 화면에 그대로 표시
+    duration_sec: float
+    title: str
+    category: str                 # intro / feature / demo / spec / funding / qna / story / closing
+    category_name: str            # 한글 표시명
+    summary: str = ""
+
+
+class TimelineOut(BaseModel):
+    job_id: str
+    chapters: list[Chapter]
+    warnings: list[str] = []      # 코드가 정리한 항목 (겹침·공백 등)
 
 
 class Candidate(BaseModel):

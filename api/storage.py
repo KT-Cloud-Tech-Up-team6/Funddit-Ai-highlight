@@ -65,6 +65,10 @@ class JobPaths:
         return self.root / "segments.json"
 
     @property
+    def timeline(self) -> Path:
+        return self.root / "timeline.json"
+
+    @property
     def state(self) -> Path:
         return self.root / "job.json"
 
