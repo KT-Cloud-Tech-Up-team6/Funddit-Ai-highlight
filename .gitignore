@@ -11,3 +11,4 @@ workspace/
 
 # 개인 작업 환경 설정
 .claude/
+.env.example
