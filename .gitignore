@@ -8,3 +8,6 @@ eval/results/
 eval/results_archive_*/
 out/archive_*/
 workspace/
+
+# 개인 작업 환경 설정
+.claude/
