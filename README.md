@@ -21,8 +21,8 @@
 # 1. 설치
 pip install -r requirements.txt
 
-# 2. 키 설정
-cp .env.example .env      # GEMINI_API_KEY 입력
+# 2. 키 설정 — 프로젝트 루트에 .env 파일 생성
+echo "GEMINI_API_KEY=발급받은_키" > .env
 
 # 3. 서버 실행
 uvicorn api.main:app --host 0.0.0.0 --port 8000
@@ -45,6 +45,20 @@ API 문서는 서버 실행 후 `/docs`에서 볼 수 있습니다.
 | FFmpeg | PATH에 등록 필요 (렌더링·프레임 추출) |
 | GPU | 권장 — 없으면 음성 인식이 CPU로 돌아 수 배 느려짐 |
 | Gemini API 키 | 필수 (`GEMINI_API_KEY`) |
+
+### 환경 변수
+
+`.env` 파일 또는 시스템 환경 변수로 설정합니다.
+
+| 변수 | 기본값 | 설명 |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | — | **필수** |
+| `GEMINI_MODEL` | `gemini-3.6-flash` | 모델 변경 시 |
+| `SHORTS_WORKSPACE` | `./workspace` | 작업 폴더 위치 |
+| `SHORTS_STT_MODEL` | `large-v3` | 음성 인식 모델 |
+| `SHORTS_MIN_CUTS_PER_MIN` | `10` | 소재 적합성 기준 |
+| `SHORTS_P2_MIN_COMMENTS` | `8` | 질문 집중 판정 기준 (60초 창) |
+| `SHORTS_MAX_JOBS` | `2` | 동시 실행 제한 |
 
 GPU를 쓰려면 CUDA 런타임이 필요합니다. 별도 툴킷 설치 없이 pip으로 받습니다.
 
