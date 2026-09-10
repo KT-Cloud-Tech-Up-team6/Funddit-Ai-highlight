@@ -1,185 +1,204 @@
-# 하이라이트 쇼츠 자동화 PoC — 기초 환경
+# Funddit AI Highlight
 
-10분 라이브 펀딩 방송 1건 → 파트 구간 분할(M1) → 판매자 선택 → 포인트 자막(M2) → FFmpeg 쇼츠 렌더링.
+라이브 커머스 방송을 **다시보기 타임라인**과 **하이라이트 쇼츠**로 자동 변환하는 AI 서비스입니다.
 
-## 계획서 대비 변경점 (구조적 안전장치)
+방송이 끝난 뒤 사용자가 요청하면, 영상과 댓글을 함께 분석해 두 가지 결과물을 만듭니다.
 
-1. **M2도 시각(ms)을 만들지 않는다** — 모델은 `source_cue_id`만 지정. 표시 시각·길이(1.5~4초)·겹침 해소·쇼츠 로컬 타임라인 변환은 전부 코드([m2_captions.py](poc/m2_captions.py))가 처리.
-2. **기계 검증 항목은 코드 게이트** ([gates.py](poc/gates.py)) — 사람 눈은 주관 항목(라벨 적절성, 크롭 품질, "올려도 될 만한가")에만 쓴다.
-   - ERROR(탈락·재시도): 없는 cue_id, 구간 겹침, 자막에 없는 evidence, source_text 변조, **근거 없는 숫자**(한글 수사 "삼십구만 구천 원" ↔ "399,000원" 대조 포함)
-   - WARN(참고): 60~120초 밖, 12자 초과, 개수 규칙
-3. **Whisper 큐 문장 재병합** — STT 세그먼트가 문장 중간에서 끊기는 문제 대응 ([transcript.py](poc/transcript.py) `merge_to_sentences`).
+| 산출물 | 용도 | 커버 범위 |
+| --- | --- | --- |
+| 다시보기 타임라인 | 시청자가 원하는 지점으로 이동 | 방송 전체 |
+| 하이라이트 쇼츠 | SNS 업로드용 세로 영상 | 판매자가 고른 구간 |
+
+---
 
 ## 빠른 시작
 
-```powershell
-# 1) 오프라인 스모크 — API 키·FFmpeg 없이 게이트/로직 검증 (환각 조작 테스트 포함)
+```bash
+# 1. 설치
+pip install -r requirements.txt
+
+# 2. 키 설정
+cp .env.example .env      # GEMINI_API_KEY 입력
+
+# 3. 서버 실행
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# 4. 확인
+curl http://localhost:8000/health
+open http://localhost:8000/          # 작업 목록 (로컬 확인용 화면)
+```
+
+API 문서는 서버 실행 후 `/docs`에서 볼 수 있습니다.
+백엔드 연동은 **[docs/API.md](docs/API.md)** 를 참고하세요.
+
+---
+
+## 요구 사항
+
+| 항목 | 버전·비고 |
+| --- | --- |
+| Python | 3.10 이상 |
+| FFmpeg | PATH에 등록 필요 (렌더링·프레임 추출) |
+| GPU | 권장 — 없으면 음성 인식이 CPU로 돌아 수 배 느려짐 |
+| Gemini API 키 | 필수 (`GEMINI_API_KEY`) |
+
+GPU를 쓰려면 CUDA 런타임이 필요합니다. 별도 툴킷 설치 없이 pip으로 받습니다.
+
+```bash
+pip install nvidia-cublas-cu12 nvidia-cudnn-cu12
+```
+
+---
+
+## 처리 흐름
+
+```
+영상 + 댓글 업로드
+   ↓
+① 소재 적합성 판정      분당 장면 전환 10회 미만이면 중단
+   ↓
+② 음성 인식            Whisper large-v3 (로컬)
+   ↓
+③ 구간 분할 + 질문 집중 탐지
+   ├─ 영상 내용 기반    모델이 자막을 읽고 시연·홍보·스펙 구간을 찾는다
+   └─ 시청자 관심 기반  코드가 댓글 수를 세어 질문이 몰린 구간을 찾는다
+   ↓
+④ 타임라인 생성        방송 전체를 주제별 챕터로 나눈다
+   ↓
+⑤ 판매자 선택 ← 여기서 멈춘다
+   ↓
+⑥ 포인트 자막 + 렌더링  선택한 구간만 처리
+```
+
+`⑤`에서 멈추는 이유는 비용입니다. 자막 생성은 구간당 약 9원이므로, 선택하지 않은 구간까지 미리 만들면 낭비입니다.
+
+---
+
+## 사용 모델
+
+| 단계 | 모델 | 선정 근거 |
+| --- | --- | --- |
+| 음성 인식 | Whisper large-v3 (로컬) | 정확도 100%, 타임코드 오차 0초, API 비용 0원 |
+| 타임라인·구간 분할·자막 | Gemini 3.6 Flash | 7개 등급 × 2개 영상 × 3회 비교 결과 1위 |
+
+모델 비교 실측은 `eval/results/`에 있습니다.
+
+---
+
+## 비용 (실측 기준)
+
+방송 20분 1건 → 타임라인 + 쇼츠 3개
+
+| 항목 | 비용 | 소요 |
+| --- | --- | --- |
+| 음성 인식 | 50원 (GPU 시간) | 5분 |
+| 타임라인 | 26원 | 25초 |
+| 구간 분할 | 21원 | 22초 |
+| 포인트 자막 ×3 | 28원 | 36초 |
+| 렌더링 | 0원 | 45초 |
+| **합계** | **약 125원** | **6분 30초** |
+
+같은 영상을 다시 요청하면 음성 인식 결과를 재사용해 42초 만에 끝납니다.
+
+환율 1 USD = 1,500원, GPU 시간당 0.40 USD 가정입니다.
+
+---
+
+## 프로젝트 구조
+
+```
+api/            FastAPI 서버
+  main.py       라우트
+  jobs.py       작업 실행 (백그라운드)
+  storage.py    작업별 격리 디렉터리
+  schemas.py    요청·응답 모델
+  settings.py   설정 (모델·임계값·경로)
+  viewer.py     로컬 확인용 화면
+
+poc/            처리 파이프라인
+  motion.py     영상 움직임 분석 (소재 적합성)
+  stt_whisper.py  음성 인식
+  timeline.py   다시보기 타임라인
+  m1_segments.py  구간 분할
+  comments.py   질문 집중 구간 (댓글 수 세기)
+  m2_captions.py  포인트 자막
+  render.py     FFmpeg 렌더링
+  gates.py      검증 게이트 (환각 차단)
+  prompts.py    모델 프롬프트
+
+eval/           평가·벤치마크
+  run_dataset.py  평가 데이터셋 실행
+  bench_llm.py    모델 비교
+  bench_stt.py    음성 인식 비교
+  cost_report.py  비용 산출
+
+data/eval/      평가 데이터셋 119건
+docs/           문서 · 아키텍처 이미지
+```
+
+---
+
+## 검증
+
+```bash
+# 오프라인 검증 (API 키·FFmpeg 없이 게이트 로직만)
 python -m eval.smoke_offline
 
-# 2) 데모 — 목데이터(로보락 F25 ACE 가상 방송 9분) + 테스트 영상으로
-#    M1 → P2 → M2 → 쇼츠 렌더링(9:16 크롭 + 자막 번인)까지 전 과정 실행
-python -m poc.pipeline demo
-# 결과: out/short_p1.mp4, out/short_p1_thumb.jpg, out/segments.json, out/p1_captions.json
+# 평가 데이터셋 실행 (코드 판정 영역, API 과금 없음)
+python -m eval.run_dataset
+
+# 모델 비교 (API 과금 발생)
+python -m eval.bench_llm --models gemini-3.6-flash --repeats 3 \
+  --transcript out/real/rb2_transcript_large.json \
+  --ref-segments data/real/rb2_reference_segments.json \
+  --ref-facts data/real/rb2_reference_facts.json \
+  --terms data/real/rb2_product_terms.json
+
+# 비용 산출
+python -m eval.cost_report --broadcasts-per-month 100
 ```
 
-## 실제 방송으로 돌릴 때 (STEP 3~7)
+### 현재 검증 상태
 
-실제 영상: `data/input/roborock_f25.mp4` (로보락 F25, KT알파쇼핑 "위대한 쇼픽", 9분 20초, 1280x720). git에는 안 들어감(`*.mp4`).
-
-```powershell
-pip install -r requirements.txt          # google-genai + faster-whisper(+CUDA 런타임) + google-cloud-speech
-copy .env.example .env                   # 키 입력 — pipeline이 .env를 자동 로드 (수동 로드 불필요)
-
-.\run_real.ps1 stt            # Whisper small/large-v3 (+Google STT, 자격증명 있으면) → out/real/transcript_*.json + 비교표
-.\run_real.ps1 m1 large       # M1 구간 분할 — Flash-Lite, Flash 두 번 → out/real/segments_large_*.json
-.\run_real.ps1 m2 large P1    # 선택 파트 M2 + 렌더링 (두 모델) → out/real/large_*/short_p1.mp4
-```
-
-개별 명령:
-
-```powershell
-python -m poc.pipeline stt --video 방송.mp4 --out out/transcript.json [--model small|large-v3] [--device cpu] [--terms data/real/product_terms.json]
-python -m poc.pipeline stt --engine google --video 방송.mp4 --out out/transcript_google.json [--model chirp_3] [--terms ...]
-python -m eval.compare_stt out/real/transcript_small.json out/real/transcript_large.json   # 처리시간·숫자 표현·병렬 텍스트
-python -m poc.pipeline m1 --transcript out/transcript.json [--cuesheet 큐시트.json] --out out/segments.json
-python -m poc.pipeline p2 --comments 댓글.json
-python -m poc.pipeline m2 --segments out/segments.json --pick P1 --transcript out/transcript.json --terms data/real/product_terms.json --outdir out
-python -m poc.pipeline render --video 방송.mp4 --captions out/p1_captions.json --out out/short_p1.mp4 [--crop-cx 0.62]
-```
-
-`--mock` 플래그를 붙이면 M1/M2가 `data/mock_llm/`의 저장 응답을 사용한다(API 불필요).
-`--terms`는 상품 용어 목록을 STT 힌트(Whisper initial_prompt / Google phrase boost)로 넣는다.
-
-### 실측 기록 (2026-09-03, 이 PC: GTX 1080 8GB, faster-whisper cuda/int8_float32)
-
-| STT | 모델 로드 | 추론 (오디오 560초) | 실시간 배수 | 큐 수 | 숫자·제품명 |
-| --- | --- | --- | --- | --- | --- |
-| Whisper small | 3초 | 36초 | x15.5 | 114 | "로봐락", "이만 파스타", "열풍곤저" 등 오인식 다수. 가격(20만·40만·69만 9천·925원)은 맞음 |
-| Whisper large-v3 | 292초 (첫 다운로드 포함) | 109초 | x5.1 | 134 | "로보락", "열풍건조", "온수" 정상. "이만 파스카이"(20,000Pa), "위대한 쇼핑"(쇼픽) 오인식. 가격 전부 맞음. 한 문장 중복 1회 |
-| Whisper large-v3 + `--terms` (initial_prompt) | 캐시 후 수초 | 138초 | x4.1 | 212 (원시 236) | "20,000Pa"로 표기 개선, "로보락"·"F25" 유지. "쇼픽"은 여전히 "쇼핑". 세그먼트가 잘게 쪼개져("네.", "어머.") 큐 수 증가 — M1 입력이 길어짐 |
-| Google STT v2 chirp_3 | — | — | — | — | 서비스 계정 키 대기 |
-
-세로 크롭 확인 (`out/real/frames/`): 방송 화면 왼쪽 1/4이 가격·스펙 패널이라 중앙 고정 크롭(0.5)이면 진행자가 잘리고 패널만 반쯤 걸린다.
-`--crop-cx 0.62`로 중심을 오른쪽으로 옮기면 진행자+제품이 들어온다. 하단 1/6은 전화번호 띠라 자막 MarginV를 260→380으로 올려 그 위에 배치.
-장면마다 피사체 위치가 달라(제품 클로즈업 0.55, 진행자 시연 0.74) 고정 크롭은 한계 — 계획서 7번 "추적 크롭" 후보.
-
-### M1·M2 실측 (2026-09-03, STT=Whisper large-v3, 큐시트 없음, 댓글 없음)
-
-M1 구간 분할 (입력 6,820 토큰):
-
-| 모델 | 찾은 파트 | 게이트 | 소요 | 비용/호출 | 메모 |
-| --- | --- | --- | --- | --- | --- |
-| gemini-3.5-flash-lite | P1 79초, P3 31초, P4 40초 | WARN SEG_LENGTH ×2 (60초 미만) | 3.2초 | $0.0011 | 시연·홍보 찾음. 구간을 짧게 잡는 경향 |
-| gemini-3.7-flash | P4 91초, P1 93초, P3 109초 | WARN SEG_GAP (P3에 34초 무발화 포함) | 6.4초 | $0.0065 | 길이 규칙 준수. 대신 음악 구간(241~275초)을 P3에 포함 |
-
-M2 포인트 자막 + 렌더링 (P1·P3 각각, `out/real/large_<모델>/short_p*.mp4`):
-
-| 모델 | P1 자막 | P3 자막 | 게이트 | 소요/호출 | 비용/호출 |
-| --- | --- | --- | --- | --- | --- |
-| gemini-3.5-flash-lite | 자동 세척 기능 / 90도 온수 세척 / 90도 열풍건조 | 20만 원 즉시 할인 / 40만 원대 특가 / 공짜 찬스 2명 | 통과 | 1.5초 | $0.0003 |
-| gemini-3.7-flash | 버튼 하나로 자동 세척 / 90도 온수 세척 / 90도 열풍 건조 / 열풍 건조로 냄새 해결 | 즉시 할인 20만 원 / 40만 원대로 할인 / 로보락 F25 / 무이자 혜택 지원 / 하루 900원대 | 통과 | 7.8초 | $0.0048 |
-
-숫자 환각 0건 (양쪽 모두 CAP_NUMBER_FAKE 없음). 렌더링은 구간당 3~11초, 파일 1.2~3.7MB.
-
-방송 1회 비용 추정 (STT Whisper 로컬 0원 + M1 1회 + M2 3회): Flash-Lite ≈ $0.002 (약 3원), Flash ≈ $0.021 (약 30원). 계획서 예상대로 LLM 비용은 무시할 수준.
-
-잠정 판정: **Flash-Lite로 충분** — 시연·홍보 파트를 찾고 숫자도 안 틀림. 약점은 구간 길이(짧게 잡음)인데 이는 프롬프트 조정으로 대응 가능. Flash는 길이는 잘 맞추지만 무발화 갭을 포함했고 호출당 2~5배 느리고 6배 비쌈.
-👁 육안 판정 남음: 라벨 적절성, 말 중간 끊김, 크롭 품질, "올려도 될 만한가".
-
-코드 수정 2건: ① 같은 큐에 자막이 2개면 0.5초짜리 자막이 나오던 문제 → 순차 배치 ② SEG_GAP 게이트 신설(구간 내 10초 이상 무발화 WARN).
-
-## 영상 움직임 분석 (화면이 멈춘 구간 거르기)
-
-쇼츠가 "멈춰 보이는" 문제는 코드가 아니라 **소재 영상**에서 온다. 두 방송을 재보면 차이가 뚜렷하다.
-
-| 영상 | 길이 | 장면 전환 | 분당 컷 | 움직임 있는 초 | 판정 |
-| --- | --- | --- | --- | --- | --- |
-| 로보락 F25 (KT알파쇼핑) | 560초 | 20회 | 2.1 | 9초 | 컷이 28초에 한 번 — 30초 쇼츠를 뽑으면 화면이 거의 안 바뀐다 |
-| 올리고365 (NS홈쇼핑) | 443초 | 333회 | 45.1 | 300초 | 쇼츠 소재로 적합 |
-
-```powershell
-python -m poc.pipeline motion --video 방송.mp4 --out out/real/motion.json
-python -m poc.pipeline m1 --transcript ... --motion out/real/motion.json --out ...
-```
-
-- [poc/motion.py](poc/motion.py) — 프레임을 뽑아 인접 프레임 픽셀 차이를 직접 계산한다.
-  ffmpeg `signalstats`/`scene_score`는 화면 전체 평균이라 작은 움직임이 0으로 묻히고, `-ss`를 `-i` 앞에 두면 키프레임으로 튄다.
-- **장면 전환과 장면 안 움직임을 나눠서 잰다.** 컷으로 화면을 바꾸는 편집을 "정지"로 오판하지 않기 위해서다.
-  게이트 `SEG_STILL`은 둘 중 하나만 만족하면 통과 — 분당 컷 3회 이상 **또는** 장면 안 움직임 30% 이상.
-- M1 입력에 `scene_changes_per_min`(시간대별 컷 빈도)과 `long_static_shots_ms`(한 화면이 오래 이어진 구간)를 준다.
-
-## 정량 벤치 (모델 비교는 점수표로)
-
-정성 판정 대신 같은 입력으로 반복 실행해 점수를 낸다. 결과는 `eval/results/`에 md+json으로 쌓인다.
-
-```powershell
-# STT: 키워드·숫자 정확도, CER(기준 전사 교정 후), 엔진 간 CER, 타임코드 정확도(span·ts_drift), 시간·비용
-python -m eval.bench_stt out/real/transcript_*.json --reference data/real/reference_transcript.txt
-
-# LLM(M1·M2): Gemini 등급별 비교. 모델을 쉼표로 나열, N회 반복
-python -m eval.bench_llm --models gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.5-flash-lite,gemini-3.5-flash,gemini-3.7-flash --repeats 3
-```
-
-| 파일 | 역할 |
+| 영역 | 결과 |
 | --- | --- |
-| [eval/bench_llm.py](eval/bench_llm.py) | M1: recall·IoU·길이·갭·오탐·ERR·반복 안정성 / M2: 핵심 사실 커버리지·개수·12자·ERR / 호출당 초·USD. 점수식은 docstring |
-| [eval/bench_stt.py](eval/bench_stt.py) | 키워드 점수(kw_score)·오인식 수·CER·pair_CER·span·ts_drift·처리 시간·비용 |
-| [data/real/reference_segments.json](data/real/reference_segments.json) | M1 기준 구간 (사람 라벨 초안, alternatives 중 최대 IoU로 채점) |
-| [data/real/reference_facts.json](data/real/reference_facts.json) | M2 파트별 핵심 사실 + 허용 표기 |
-| [data/real/stt_keywords.json](data/real/stt_keywords.json) | STT 채점 키워드·숫자 17개 (화면 자막으로 확인한 값) |
-| [data/real/reference_transcript.draft.txt](data/real/reference_transcript.draft.txt) | CER용 기준 전사 초안 — 사람이 오디오 듣고 교정한 뒤 `reference_transcript.txt`로 저장하면 CER이 활성화 |
+| 소재 적합성 판정 | 13/13 |
+| 음성 인식 키워드 | 49/50 |
+| 질문 집중 구간 | 4/4 |
+| 자막 숫자 오류 | 42회 실행 중 0건 |
 
-키: `.env`에 `GEMINI_API_KEY`. 단가는 `poc/llm.py`의 `PRICE_PER_M`.
-모델 비교는 **Gemini 등급 간 비교**로 한정한다 (챗 API가 Gemini라 운영을 통일).
-`poc/llm.py`는 `claude-*`/`gpt-*` 접두사 라우팅도 갖고 있어 필요해지면 키만 넣으면 바로 붙는다.
-주의: Gemini 무료 등급 키는 `gemini-3.1-pro-preview` 호출 한도가 0이라 pro 비교엔 유료 키가 필요하다.
+---
 
-## 비용 산출
+## 환각 차단 설계
 
-PoC / 개발 / 운영 세 국면으로 나눠 계산한다. 실측 사용량 로그(`out/real/llm_usage.jsonl`)와 STT 메타에서 뽑는다.
+숫자가 틀린 자막은 품질 문제가 아니라 법적 문제입니다. 그래서 모델이 틀릴 수 있는 자리를 구조적으로 없앴습니다.
 
-```powershell
-python -m eval.cost_report                                   # 월 100건 기준
-python -m eval.cost_report --broadcasts-per-month 300 --shorts-per-month 900
-```
+- 모델은 **시각(ms)을 만들지 않습니다.** 큐 번호만 지정하고 시각은 코드가 조회합니다.
+- 자막의 숫자는 **근거 발화나 상품 정보에 있어야** 통과합니다. 한글 수사도 변환해 대조합니다 (`이만 파스칼` ↔ `20,000Pa`).
+- 인용은 **유사도 0.90 이상**만 인정합니다. 그 아래는 경고, 0.75 미만은 차단입니다.
+- 통과하지 못한 자막은 렌더링 전에 제외됩니다.
 
-| 국면 | 정의 | 성격 |
+게이트 20종의 구현은 `poc/gates.py`에 있습니다.
+
+---
+
+## 소재 영상 조건
+
+모든 방송이 쇼츠 소재가 되지는 않습니다.
+
+| 영상 | 분당 장면 전환 | 판정 |
 | --- | --- | --- |
-| PoC | 모델 비교·재실행·시행착오 실측 합계 | 한 번 쓰고 끝나는 돈 |
-| 개발 | PoC 1사이클 × 튜닝 반복 횟수 | 제품화 기간에만 |
-| 운영 | 방송 1건 단가(M1 1회 + M2 3회 + STT) × 월 물량 | 매달 나가는 돈 |
+| 로보락 F25 (20분) | 47.3회 | 적합 |
+| 올리고365 (7분) | 45.1회 | 적합 |
+| 로보락 F25 (9분, 다른 편집본) | 2.1회 | **부적합** |
 
-결과는 `eval/results/cost_report_<시각>.md`. 환율·인프라 단가 가정은 [eval/cost_report.py](eval/cost_report.py) 상단 상수에서 조정한다.
+장면 전환이 분당 10회 미만이면 쇼츠로 만들었을 때 화면이 멈춘 것처럼 보입니다. 업로드 단계에서 `POST /screen`으로 미리 판정할 수 있습니다.
 
-## 구조
+---
 
-| 경로 | 역할 |
-| --- | --- |
-| [poc/models.py](poc/models.py) | Cue / Segment / Caption / Violation |
-| [poc/stt_whisper.py](poc/stt_whisper.py) | S1: Whisper 로컬 STT (+VAD, 문장 재병합, CUDA 자동 감지·CPU 폴백) |
-| [poc/stt_google.py](poc/stt_google.py) | S1: Google STT v2 (무음 경계 55초 조각 → 동기 API, GCS 불필요, 용어 boost) |
-| [poc/m1_segments.py](poc/m1_segments.py) | M1: 구간 분할 + 게이트 + cue_id→ms 조회 |
-| [poc/comments.py](poc/comments.py) | P2: 댓글 수 세기 (모델 미사용) |
-| [poc/m2_captions.py](poc/m2_captions.py) | M2: 포인트 자막 + 게이트 + 표시 타이밍 계산 |
-| [poc/gates.py](poc/gates.py) | 코드 검증 게이트 (환각·구조 오류 차단) |
-| [poc/numbers.py](poc/numbers.py) | 한글 수사 ↔ 숫자 변환 (숫자 환각 게이트용) |
-| [poc/render.py](poc/render.py) | FFmpeg: 컷 + 9:16 크롭 + ASS 번인 + 썸네일 |
-| [poc/prompts.py](poc/prompts.py) | M1/M2 프롬프트 (M2는 cue_id 지정 방식으로 개정) |
-| [data/](data/) | 목데이터: 가상 방송 자막·댓글·큐시트·상품 용어 목록 |
-| [eval/smoke_offline.py](eval/smoke_offline.py) | 오프라인 스모크 (정상 경로 + 환각 조작 테스트) |
-| [eval/compare_stt.py](eval/compare_stt.py) | STT 결과 비교 (처리시간·숫자 표현 추출·병렬 텍스트) |
-| [run_real.ps1](run_real.ps1) | 실제 방송 CFG-1/2/3 일괄 실행 |
-| [data/real/](data/real/) | 실제 방송용 상품 용어 목록 (발화+화면 기준 초안) |
+## 라이선스·주의 사항
 
-## 남은 일 (계획서 STEP 기준)
-
-- STEP 1 (사용자): 댓글 시계열 목데이터(`data/mock_comments.json` 형식), 큐시트(선택)
-- STEP 2 (사용자): `data/real/product_terms.json`의 `_check` 항목을 상품 상세로 확인
-- STEP 3 (사용자): Google STT 서비스 계정 키 + 프로젝트 ID → `.env` (CFG-2/3). 생략하면 Whisper만 비교
-- STEP 5·8 (사용자·팀원): 위 쇼츠 4개 육안 판정 (`out/real/large_*/short_p1.mp4`, `short_p3.mp4`)
-- STEP 4 보강: 댓글 목데이터 오면 P2 추가, Flash-Lite 구간 길이 프롬프트 조정 후 재실행
-- STEP 10: 모델·프롬프트 확정서
-
-STT 잠정 판정: large-v3는 가격·수치를 전부 맞게 받아써서 계획서 11번 기준(숫자 틀리면 탈락) 통과. small은 제품명 오인식이 많아 탈락. 용어 힌트는 단위 표기엔 도움이 되나 큐가 잘게 쪼개지는 부작용이 있어 M1 결과 보고 결정.
-
-메모: 이 PC는 GTX 1080(Pascal)이라 float16 불가 → int8_float32. large-v3 10분 영상 추론 약 2분. M4 맥 실측은 별도.
+- 방송 VOD는 판매자 소유입니다. 2차 저작물 생성 동의가 이용약관에 포함되어야 합니다.
+- 진행자 초상권은 방송 계약서에 쇼츠 관련 조항이 필요합니다.
+- 댓글은 본문을 저장하되 분석에는 시각만 사용합니다.
+- Gemini API 사용 시 입력 데이터가 학습에 쓰이지 않도록 설정을 확인하세요.
