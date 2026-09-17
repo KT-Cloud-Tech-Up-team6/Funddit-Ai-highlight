@@ -66,7 +66,7 @@ class Chapter(BaseModel):
     timestamp: str                # "02:34" 형식 — 화면에 그대로 표시
     duration_sec: float
     title: str
-    category: str                 # intro / feature / demo / spec / funding / qna / story / closing
+    category: str                 # intro / price / demo / spec / compare / qna / closing
     category_name: str            # 한글 표시명
     summary: str = ""
 

@@ -41,16 +41,32 @@ class Chapter:
     summary: str = ""          # 한 줄 요약 (선택)
 
 
+# 구매 결정에 쓰이는 정보 유형으로 나눈다.
+# 순서는 시청자 관심도 기준 (Coresight 설문: 딜 40% / 발견 34% / 상세 31%,
+# 국내 논문: 구매이유 1위 가격·구성, 2위 상세설명, 요구사항 시연·비교).
 CATEGORIES = {
     "intro": "도입",
-    "feature": "기능 설명",
+    "price": "가격·혜택",
     "demo": "시연",
-    "spec": "제품 스펙",
-    "funding": "펀딩 정보",
+    "spec": "스펙·기능",
+    "compare": "비교",
     "qna": "질문 응답",
-    "story": "제작 배경",
     "closing": "마무리",
 }
+
+# 이전 분류명 → 현재 분류명 (기존 결과 파일 호환)
+_CATEGORY_ALIASES = {
+    "funding": "price",
+    "feature": "spec",
+    "story": "intro",
+}
+
+
+def _norm_category(value: str) -> str:
+    """구 분류명이 들어와도 현재 체계로 맞춘다."""
+    v = str(value or "").strip().lower()
+    v = _CATEGORY_ALIASES.get(v, v)
+    return v if v in CATEGORIES else "spec"
 
 
 def timestamp(ms: int) -> str:
@@ -102,8 +118,10 @@ def run_timeline(
         chapters.append(Chapter(
             start_ms=idx[sc].start_ms,
             end_ms=idx[ec].end_ms,
-            title=str(ch.get("title", ""))[:30],
-            category=ch.get("category", "feature"),
+            # 카카오 쇼핑라이브 하이라이트 레이블 상한이 18자다.
+            # 거기에 맞춰두면 유튜브 챕터로도 그대로 쓸 수 있다.
+            title=str(ch.get("title", ""))[:18],
+            category=_norm_category(ch.get("category", "spec")),
             start_cue_id=sc, end_cue_id=ec,
             summary=str(ch.get("summary", ""))[:80],
         ))

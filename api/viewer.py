@@ -95,8 +95,10 @@ VIEWER_HTML = """<!doctype html>
 <script>
 const JOB = location.pathname.split('/').pop();
 const COLORS = {
-  intro:'#8f8b9c', feature:'#7fd4a8', demo:'#a9b8f0', spec:'#7fd4a8',
-  funding:'#ff9b9b', qna:'#ffc07f', story:'#c9a9f0', closing:'#6f6b7c'
+  intro:'#8f8b9c', price:'#ff9b9b', demo:'#a9b8f0', spec:'#7fd4a8',
+  compare:'#c9a9f0', qna:'#ffc07f', closing:'#6f6b7c',
+  // 이전 결과 파일 호환
+  funding:'#ff9b9b', feature:'#7fd4a8', story:'#8f8b9c'
 };
 const v = document.getElementById('v');
 let chapters = [];
