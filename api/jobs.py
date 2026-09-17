@@ -155,18 +155,27 @@ def _analysis_stages(job_id: str, paths: JobPaths, t0: float) -> None:
         _set(job_id, stage_detail="채팅 반응 구간 탐지", progress=0.65)
         from poc import chat as chat_mod
 
-        chat_items = chat_mod.load(paths.comments)
-        p2_windows = comments_mod.find_p2_windows(
-            chat_items,
-            window_ms=settings.P2_WINDOW_MS,
-            step_ms=settings.P2_STEP_MS,
-            min_count=settings.P2_MIN_COMMENTS,
-        )
-        hot_windows = comments_mod.find_hot_windows(
-            chat_items,
-            window_ms=settings.P2_WINDOW_MS,
-            step_ms=settings.P2_STEP_MS,
-        )
+        # 채팅이 절대시각으로 오면 방송 시작 시각으로 경과시간을 환산한다.
+        # 채팅은 부가 정보다. 형식이 맞지 않아도 쇼츠·타임라인 생성은 계속한다.
+        try:
+            chat_items = chat_mod.load(
+                paths.comments,
+                broadcast_start_ms=(get(job_id) or {}).get("broadcast_start_ms"),
+            )
+            p2_windows = comments_mod.find_p2_windows(
+                chat_items,
+                window_ms=settings.P2_WINDOW_MS,
+                step_ms=settings.P2_STEP_MS,
+                min_count=settings.P2_MIN_COMMENTS,
+            )
+            hot_windows = comments_mod.find_hot_windows(
+                chat_items,
+                window_ms=settings.P2_WINDOW_MS,
+                step_ms=settings.P2_STEP_MS,
+            )
+        except Exception as e:  # noqa: BLE001
+            chat_items = None
+            _set(job_id, chat_error=f"{type(e).__name__}: {e}")
 
     # ④ 구간 분할 — 움직임 정보를 함께 넘겨 정지 구간을 피하게 한다
     _set(job_id, status=JobStatus.SEGMENTING,

@@ -17,7 +17,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 
 from api import jobs, settings, storage
@@ -109,7 +109,12 @@ def create_job(
     background: BackgroundTasks,
     video: UploadFile = File(..., description="방송 영상"),
     terms: UploadFile | None = File(None, description="상품 용어 목록 JSON"),
-    comments: UploadFile | None = File(None, description="댓글 시계열 JSON"),
+    comments: UploadFile | None = File(None, description="라이브 채팅 JSON"),
+    broadcast_start_ms: int | None = Form(
+        None,
+        description="방송 시작 시각(epoch ms). 채팅이 절대시각으로 오는 경우에만 필요하다. "
+                    "채팅 시각이 이미 방송 시작 기준 경과시간(ms)이면 생략한다.",
+    ),
 ) -> JobCreated:
     job_id = jobs.new_job_id()
     paths = JobPaths(job_id)
@@ -124,7 +129,8 @@ def create_job(
 
     jobs._set(job_id, status=JobStatus.QUEUED, stage_detail="대기 중", progress=0.0,
               filename=video.filename, has_terms=terms is not None,
-              has_comments=comments is not None)
+              has_comments=comments is not None,
+              broadcast_start_ms=broadcast_start_ms)
     background.add_task(jobs.run_analysis, job_id)
     return JobCreated(job_id=job_id, status=JobStatus.QUEUED,
                       message="접수했습니다. GET /jobs/{job_id}로 진행 상태를 확인하세요.")
