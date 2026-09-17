@@ -145,15 +145,27 @@ def _analysis_stages(job_id: str, paths: JobPaths, t0: float) -> None:
 
     cues = load_cues(paths.transcript)
 
-    # ③ P2 — 댓글이 있으면 질문 집중 구간을 코드로 찾는다 (범위 2)
+    # ③ 채팅 — 있으면 질문 집중 구간(쇼츠 후보용)과
+    #    반응이 뜨거운 구간(타임라인 표시용)을 각각 찾는다.
+    #    chat.load 가 플랫폼별 필드명·절대시각을 표준 형식으로 바꿔준다.
     p2_windows: list[dict] = []
+    hot_windows: list[dict] = []
+    chat_items: list[dict] | None = None
     if paths.comments.exists():
-        _set(job_id, stage_detail="질문 집중 구간 탐지", progress=0.65)
+        _set(job_id, stage_detail="채팅 반응 구간 탐지", progress=0.65)
+        from poc import chat as chat_mod
+
+        chat_items = chat_mod.load(paths.comments)
         p2_windows = comments_mod.find_p2_windows(
-            comments_mod.load_comments(paths.comments),
+            chat_items,
             window_ms=settings.P2_WINDOW_MS,
             step_ms=settings.P2_STEP_MS,
             min_count=settings.P2_MIN_COMMENTS,
+        )
+        hot_windows = comments_mod.find_hot_windows(
+            chat_items,
+            window_ms=settings.P2_WINDOW_MS,
+            step_ms=settings.P2_STEP_MS,
         )
 
     # ④ 구간 분할 — 움직임 정보를 함께 넘겨 정지 구간을 피하게 한다
@@ -176,7 +188,7 @@ def _analysis_stages(job_id: str, paths: JobPaths, t0: float) -> None:
         tl_llm = LLM(model=settings.LLM_MODEL, tag=f"timeline-{job_id}")
         chapters, tl_warnings = timeline_mod.run_timeline(
             cues, tl_llm, out_path=paths.timeline,
-            comments=comments_mod.load_comments(paths.comments) if paths.comments.exists() else None)
+            comments=chat_items, hot_windows=hot_windows)
         chapter_count = len(chapters)
     except Exception as e:  # noqa: BLE001 — 타임라인 실패가 쇼츠 생성을 막지는 않는다
         _set(job_id, timeline_error=f"{type(e).__name__}: {e}")

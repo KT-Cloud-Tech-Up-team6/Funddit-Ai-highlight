@@ -66,6 +66,7 @@ def run_timeline(
     llm: LLM,
     out_path: str | Path | None = None,
     comments: list[dict] | None = None,
+    hot_windows: list[dict] | None = None,
 ) -> tuple[list[Chapter], list[str]]:
     """방송 전체를 챕터로 나눈다. 반환: (챕터 목록, 경고 목록)."""
     payload = {
@@ -74,10 +75,21 @@ def run_timeline(
         ],
         "categories": CATEGORIES,
     }
-    if comments:
-        from poc.comments import find_p2_windows
 
-        payload["question_windows_ms"] = find_p2_windows(comments)
+    # 채팅 반응이 뜨거운 구간. 분류 근거가 아니라 '구간 경계' 힌트로만 쓴다.
+    # 커머스에서는 가격 공개 때 채팅이 가장 몰리므로, 이것을 qna 신호로
+    # 쓰면 price 구간이 qna 로 잘못 분류된다 (실제로 그랬다).
+    if hot_windows is None and comments:
+        from poc.comments import find_hot_windows
+
+        hot_windows = find_hot_windows(comments)
+
+    if hot_windows:
+        payload["hot_windows_ms"] = [
+            {"start_ms": w["start_ms"], "end_ms": w["end_ms"],
+             "intensity": w.get("intensity", 1.0)}
+            for w in hot_windows
+        ]
 
     raw = llm.generate_json(TIMELINE_PROMPT, payload)
     idx = {c.cue_id: c for c in cues}
