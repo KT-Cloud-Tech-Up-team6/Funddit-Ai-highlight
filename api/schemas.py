@@ -130,6 +130,13 @@ class ShortList(BaseModel):
     shorts: list[ShortOut]
 
 
+class TitleUpdate(BaseModel):
+    """쇼츠 제목 수정 — AI가 정한 제목이 마음에 들지 않을 때."""
+
+    title: str = Field(..., min_length=1, max_length=60,
+                       description="새 제목. '[상품명] 제목' 형식을 그대로 보내면 된다.")
+
+
 class HealthCheck(BaseModel):
     ok: bool
     ffmpeg: bool

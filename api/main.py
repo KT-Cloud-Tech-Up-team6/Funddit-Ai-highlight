@@ -34,6 +34,7 @@ from api.schemas import (
     ShortList,
     ShortOut,
     TimelineOut,
+    TitleUpdate,
 )
 from api.storage import JobPaths
 from api.viewer import VIEWER_HTML
@@ -251,6 +252,41 @@ def shorts(job_id: str) -> ShortList:
             thumbnail_url=paths.url(thumb) if thumb.exists() else None,
         ))
     return ShortList(job_id=job_id, shorts=items)
+
+
+@app.patch("/jobs/{job_id}/shorts/{candidate_id}/title", response_model=ShortOut)
+def update_short_title(job_id: str, candidate_id: str, req: TitleUpdate) -> ShortOut:
+    """쇼츠 제목을 바꾼다.
+
+    제목은 `[상품명] AI가 정한 제목` 형식으로 자동 생성된다.
+    판매자가 고치고 싶을 때 이 엔드포인트를 쓴다.
+
+    이미 렌더링된 영상의 화면 자막은 바뀌지 않는다. 메타데이터상의
+    제목만 바뀐다 (업로드 시 쓸 제목)."""
+    job = jobs.get(job_id)
+    if job is None:
+        raise HTTPException(404, f"작업을 찾을 수 없습니다: {job_id}")
+
+    paths = JobPaths(job_id)
+    f = paths.root / "shorts.json"
+    if not f.exists():
+        raise HTTPException(409, f"아직 쇼츠가 없습니다 (상태: {job.get('status')})")
+
+    data = storage.read_json(f)
+    target = next((s for s in data if s["candidate_id"] == candidate_id), None)
+    if target is None:
+        raise HTTPException(404, f"쇼츠를 찾을 수 없습니다: {candidate_id}")
+
+    target["title"] = req.title.strip()
+    storage.write_json(f, data)
+
+    thumb = paths.short_thumb(candidate_id)
+    return ShortOut(
+        **{k: v for k, v in target.items() if k != "candidate_id"},
+        candidate_id=candidate_id,
+        video_url=paths.url(paths.short_video(candidate_id)) or "",
+        thumbnail_url=paths.url(thumb) if thumb.exists() else None,
+    )
 
 
 # ── 로컬 확인용 뷰어 ──────────────────────────────────────────────────

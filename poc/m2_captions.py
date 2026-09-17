@@ -72,8 +72,9 @@ def run_m2(
                 highlight=hl if hl and hl in text else "",  # text의 부분 문자열이 아니면 강조 무시
             )
         )
-    # 상단 제목: 모델이 안 주면 상품명 + 구간 라벨로 대체
-    title = (raw.get("title") or "").strip() or f"{terms.get('product_name', '')} {segment.label}".strip()
+    # 상단 제목: "[상품명] AI가 정한 제목" 형식.
+    # 모델은 제목만 만들고 상품명은 코드가 붙인다 — 상품명이 틀리면 안 되기 때문이다.
+    title = build_title(raw.get("title"), terms, segment)
 
     violations = validate_captions(segment, captions, all_cues, terms)
     # ERROR가 붙은 자막(숫자 환각·근거 없음)은 렌더링에서 제외
@@ -107,3 +108,28 @@ def load_captions(path: str | Path) -> tuple[Segment, list[Caption]]:
 
 def load_title(path: str | Path) -> str:
     return json.loads(Path(path).read_text(encoding="utf-8")).get("title", "")
+
+
+def build_title(model_title: str | None, terms: dict, segment) -> str:
+    """'[상품명] AI가 정한 제목' 형식으로 조립한다.
+
+    상품명은 코드가 붙인다. 모델이 상품명을 지어내면 틀린 이름이 그대로
+    쇼츠에 박히므로, 모델에게는 구간 요약만 맡긴다.
+
+    모델이 습관적으로 상품명을 앞에 붙여 보내는 경우가 있어 중복을 걷어낸다.
+    """
+    product = str(terms.get("product_name", "") or "").strip()
+    body = str(model_title or "").strip()
+
+    if product and body:
+        # "로보락 F25 고추기름도 한 번에" → "고추기름도 한 번에"
+        lowered, plower = body.lower(), product.lower()
+        if lowered.startswith(plower):
+            body = body[len(product):].strip(" -–—:|[]")
+        elif lowered.startswith(f"[{plower}]"):
+            body = body[len(product) + 2:].strip(" -–—:|")
+
+    if not body:
+        body = str(getattr(segment, "label", "") or "").strip() or "하이라이트"
+
+    return f"[{product}] {body}".strip() if product else body

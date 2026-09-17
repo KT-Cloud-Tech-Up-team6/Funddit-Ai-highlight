@@ -8,7 +8,7 @@
 ## 1. 전체 흐름
 
 ```
-① POST /jobs                     영상 + 댓글 업로드      → job_id
+① POST /jobs                     영상 + 라이브 채팅 업로드 → job_id
 ② GET  /jobs/{id}                2~5초 폴링             → 진행 상태
 ③ GET  /jobs/{id}/timeline       다시보기 챕터
 ④ GET  /jobs/{id}/candidates     쇼츠 후보 목록
@@ -98,10 +98,13 @@
 | 필드 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
 | `video` | 파일 | 필수 | 방송 영상 (MP4) |
-| `comments` | 파일 | 권장 | 댓글 시계열 JSON |
+| `comments` | 파일 | 권장 | 라이브 채팅 JSON |
 | `terms` | 파일 | 선택 | 상품 용어 목록 JSON |
+| `broadcast_start_ms` | 정수 | 조건부 | 방송 시작 시각(epoch ms). 채팅이 절대시각일 때만 필요 |
 
-**댓글 형식**
+**채팅 형식**
+
+가장 단순한 형태입니다. `ts_ms`는 방송 시작 기준 밀리초입니다.
 
 ```json
 {
@@ -112,7 +115,27 @@
 }
 ```
 
-`ts_ms`는 방송 시작 기준 밀리초입니다. 본문은 저장하되 분석에는 시각만 사용합니다.
+플랫폼별 형식도 그대로 받습니다. 필드명이 달라도 자동으로 맞춥니다.
+
+```json
+{
+  "messages": [
+    { "createdAt": 1700000015000, "nickname": "user1", "msg": "가격 얼마예요?", "type": "CHAT" },
+    { "createdAt": 1700000016000, "nickname": "user2", "type": "LIKE" }
+  ]
+}
+```
+
+- 배열 키 — `comments` · `chats` · `messages` · `items` · `data` · `events` 또는 리스트 그대로
+- 시각 — `ts_ms` · `createdAt` · `offset` · `timestamp` 등 / epoch ms·초, ISO8601, `MM:SS`, `HH:MM:SS`
+- 본문 — `text` · `msg` · `message` · `content` 등
+- 종류 — `chat` · `like` · `purchase` · `join` · `system`
+
+**시각이 절대시각(epoch)이면 `broadcast_start_ms`를 함께 보내야 합니다.**
+이미 방송 시작 기준 경과시간이면 생략합니다.
+
+본문은 저장하되 분석에는 시각만 사용합니다.
+채팅 처리가 실패해도 쇼츠·타임라인 생성은 계속됩니다.
 댓글을 주면 "시청자가 궁금해한 구간"이 후보에 추가됩니다.
 
 **상품 용어 형식**
@@ -358,7 +381,7 @@ queued → screening → transcribing → segmenting → timeline
     {
       "candidate_id": "seg_1",
       "part_type": "P1",
-      "title": "로보락 F25 강력 청소 시연",
+      "title": "[로보락 F25] 고추기름도 한 번에",
       "duration_sec": 119.0,
       "size_bytes": 28311552,
       "video_url": "/files/e8a4328f30a2/shorts/seg_1/short.mp4",
@@ -380,9 +403,28 @@ queued → screening → transcribing → segmenting → timeline
 
 `captions`는 자막 수정 기능을 붙일 때 씁니다. `violations`가 비어 있으면 검증을 모두 통과한 것입니다.
 
+`title`은 **`[상품명] AI가 정한 제목`** 형식입니다. 상품명은 `terms`의 `product_name`을
+코드가 붙이고, 뒷부분만 모델이 만듭니다.
+
 ---
 
-### 2-9. `GET /files/{job_id}/{path}`
+### 2-9. `PATCH /jobs/{job_id}/shorts/{candidate_id}/title`
+
+AI가 정한 제목을 판매자가 바꿉니다.
+
+**요청**
+
+```json
+{ "title": "[로보락 F25] 직접 정한 제목" }
+```
+
+**응답** — 수정된 `ShortOut` 하나
+
+이미 렌더링된 영상의 화면 자막은 바뀌지 않습니다. 업로드에 쓸 메타데이터상의 제목만 바뀝니다.
+
+---
+
+### 2-10. `GET /files/{job_id}/{path}`
 
 결과 파일을 서빙합니다. 다른 응답의 `video_url`, `thumbnail_url`이 이 형식입니다.
 
