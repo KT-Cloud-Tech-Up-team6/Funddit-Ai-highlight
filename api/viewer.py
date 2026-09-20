@@ -94,6 +94,7 @@ VIEWER_HTML = """<!doctype html>
 
 <script>
 const JOB = location.pathname.split('/').pop();
+const API = '/api/v1/ai';
 const COLORS = {
   intro:'#8f8b9c', price:'#ff9b9b', demo:'#a9b8f0', spec:'#7fd4a8',
   compare:'#c9a9f0', qna:'#ffc07f', closing:'#6f6b7c',
@@ -109,9 +110,9 @@ function fmt(ms){
 }
 
 async function load(){
-  v.src = `/files/${JOB}/input/video.mp4`;
+  v.src = `${API}/files/${JOB}/input/video.mp4`;
 
-  const tl = await fetch(`/jobs/${JOB}/timeline`).then(r=>r.json());
+  const tl = await fetch(`${API}/jobs/${JOB}/timeline`).then(r=>r.json());
   chapters = tl.chapters;
   document.getElementById('chCount').textContent = chapters.length;
 
@@ -151,7 +152,7 @@ async function load(){
 
   // 쇼츠
   try {
-    const sh = await fetch(`/jobs/${JOB}/shorts`).then(r=>r.json());
+    const sh = await fetch(`${API}/jobs/${JOB}/shorts`).then(r=>r.json());
     document.getElementById('shorts').innerHTML = sh.shorts.map(s=>`
       <div class="card">
         <video src="${s.video_url}" controls preload="metadata"></video>

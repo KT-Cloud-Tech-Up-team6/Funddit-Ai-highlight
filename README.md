@@ -159,7 +159,7 @@ pip install nvidia-cublas-cu12 nvidia-cudnn-cu12
 - 본문: `text` · `msg` · `message` · `content` 등
 - 종류: `chat` · `like` · `purchase` · `join` · `system` — 좋아요·구매 알림도 반응 강도에 반영
 
-채팅이 **절대시각**으로 오면 `POST /jobs`에 `broadcast_start_ms`(방송 시작 epoch ms)를
+채팅이 **절대시각**으로 오면 `POST /api/v1/ai/jobs`에 `broadcast_start_ms`(방송 시작 epoch ms)를
 함께 보내야 경과시간으로 환산됩니다. 이미 경과시간이면 생략합니다.
 
 채팅 처리가 실패해도 쇼츠·타임라인 생성은 계속됩니다. 채팅은 부가 정보입니다.
@@ -182,7 +182,7 @@ pip install nvidia-cublas-cu12 nvidia-cudnn-cu12
 제목이 마음에 들지 않으면 API로 바꿀 수 있습니다.
 
 ```
-PATCH /jobs/{job_id}/shorts/{candidate_id}/title
+PATCH /api/v1/ai/jobs/{job_id}/shorts/{candidate_id}/title
   {"title": "[로보락 F25] 직접 정한 제목"}
 ```
 
@@ -309,7 +309,7 @@ python -m eval.cost_report --broadcasts-per-month 100
 | 올리고365 (7분) | 45.1회 | 적합 |
 | 로보락 F25 (9분, 다른 편집본) | 2.1회 | **부적합** |
 
-장면 전환이 분당 10회 미만이면 쇼츠로 만들었을 때 화면이 멈춘 것처럼 보입니다. 업로드 단계에서 `POST /screen`으로 미리 판정할 수 있습니다.
+장면 전환이 분당 10회 미만이면 쇼츠로 만들었을 때 화면이 멈춘 것처럼 보입니다. 업로드 단계에서 `POST /api/v1/ai/screen`으로 미리 판정할 수 있습니다.
 
 ---
 

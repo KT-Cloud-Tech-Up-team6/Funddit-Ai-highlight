@@ -15,6 +15,9 @@ from typing import Any
 
 from api.settings import WORKSPACE
 
+# 응답에 담는 파일 URL의 접두. api/main.py 의 BASE 와 같아야 한다.
+API_BASE = "/api/v1/ai"
+
 
 class JobPaths:
     """작업 하나의 파일 배치를 캡슐화한다."""
@@ -109,7 +112,7 @@ class JobPaths:
             rel = path.relative_to(self.root)
         except ValueError:
             return None
-        return f"/files/{self.job_id}/{rel.as_posix()}"
+        return f"{API_BASE}/files/{self.job_id}/{rel.as_posix()}"
 
 
 def _default(o: Any):

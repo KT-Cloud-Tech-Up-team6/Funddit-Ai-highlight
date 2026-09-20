@@ -2,13 +2,14 @@
 
   uvicorn api.main:app --reload
 
-흐름
-  POST /jobs                     영상 업로드 → 소재판정·STT·구간분할 (백그라운드)
-  GET  /jobs/{id}                진행 상태
-  GET  /jobs/{id}/candidates     구간 후보 (판매자 선택 화면용)
-  POST /jobs/{id}/select         고른 구간으로 쇼츠 생성 (백그라운드)
-  GET  /jobs/{id}/shorts         완성된 쇼츠
-  GET  /files/{id}/{path}        결과 파일 서빙
+흐름 (Base: /api/v1/ai)
+  POST /api/v1/ai/jobs                  영상 업로드 → 소재판정·STT·구간분할 (백그라운드)
+  GET  /api/v1/ai/jobs/{id}             진행 상태
+  GET  /api/v1/ai/jobs/{id}/timeline    다시보기 타임라인
+  GET  /api/v1/ai/jobs/{id}/candidates  구간 후보 (판매자 선택 화면용)
+  POST /api/v1/ai/jobs/{id}/select      고른 구간으로 쇼츠 생성 (백그라운드)
+  GET  /api/v1/ai/jobs/{id}/shorts      완성된 쇼츠
+  GET  /api/v1/ai/files/{id}/{path}     결과 파일 서빙
 """
 from __future__ import annotations
 
@@ -48,9 +49,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# 전사 공통 규칙: URL 경로 버저닝 (/api/v1/...). AI 서비스는 /api/v1/ai 하위.
+# 응답에 담기는 파일 URL도 같은 접두를 써야 하므로 storage 와 값을 공유한다.
+BASE = storage.API_BASE
+
 
 # ── 헬스체크 ──────────────────────────────────────────────────────────
-@app.get("/health", response_model=HealthCheck)
+@app.get(BASE + "/health", response_model=HealthCheck)
 def health() -> HealthCheck:
     import os
 
@@ -91,7 +96,7 @@ def health() -> HealthCheck:
 
 
 # ── 소재 적합성만 사전 확인 ───────────────────────────────────────────
-@app.post("/screen", response_model=ScreenResult)
+@app.post(BASE + "/screen", response_model=ScreenResult)
 def screen(video: UploadFile = File(...)) -> ScreenResult:
     """영상만 넣어 쇼츠 소재로 쓸 만한지 판정한다. STT를 돌리지 않아 빠르다."""
     tmp = Path(tempfile.mkdtemp(prefix="screen_"))
@@ -105,7 +110,7 @@ def screen(video: UploadFile = File(...)) -> ScreenResult:
 
 
 # ── 1단계: 업로드 → 후보 구간 ─────────────────────────────────────────
-@app.post("/jobs", response_model=JobCreated, status_code=202)
+@app.post(BASE + "/jobs", response_model=JobCreated, status_code=202)
 def create_job(
     background: BackgroundTasks,
     video: UploadFile = File(..., description="방송 영상"),
@@ -134,10 +139,10 @@ def create_job(
               broadcast_start_ms=broadcast_start_ms)
     background.add_task(jobs.run_analysis, job_id)
     return JobCreated(job_id=job_id, status=JobStatus.QUEUED,
-                      message="접수했습니다. GET /jobs/{job_id}로 진행 상태를 확인하세요.")
+                      message="접수했습니다. GET /api/v1/ai/jobs/{job_id}로 진행 상태를 확인하세요.")
 
 
-@app.get("/jobs/{job_id}", response_model=JobState)
+@app.get(BASE + "/jobs/{job_id}", response_model=JobState)
 def job_state(job_id: str) -> JobState:
     job = jobs.get(job_id)
     if job is None:
@@ -158,7 +163,7 @@ def job_state(job_id: str) -> JobState:
     )
 
 
-@app.get("/jobs/{job_id}/candidates", response_model=CandidateList)
+@app.get(BASE + "/jobs/{job_id}/candidates", response_model=CandidateList)
 def candidates(job_id: str) -> CandidateList:
     """판매자 선택 화면용 후보 목록."""
     job = jobs.get(job_id)
@@ -183,7 +188,7 @@ def candidates(job_id: str) -> CandidateList:
     return CandidateList(job_id=job_id, candidates=items)
 
 
-@app.get("/jobs/{job_id}/timeline", response_model=TimelineOut)
+@app.get(BASE + "/jobs/{job_id}/timeline", response_model=TimelineOut)
 def timeline(job_id: str) -> TimelineOut:
     """다시보기 타임라인 — 방송 전체를 주제별 챕터로 나눈 목록.
 
@@ -208,7 +213,7 @@ def timeline(job_id: str) -> TimelineOut:
 
 
 # ── 2단계: 선택 → 쇼츠 ────────────────────────────────────────────────
-@app.post("/jobs/{job_id}/select", response_model=JobState, status_code=202)
+@app.post(BASE + "/jobs/{job_id}/select", response_model=JobState, status_code=202)
 def select(job_id: str, req: SelectRequest, background: BackgroundTasks) -> JobState:
     job = jobs.get(job_id)
     if job is None:
@@ -231,7 +236,7 @@ def select(job_id: str, req: SelectRequest, background: BackgroundTasks) -> JobS
     return job_state(job_id)
 
 
-@app.get("/jobs/{job_id}/shorts", response_model=ShortList)
+@app.get(BASE + "/jobs/{job_id}/shorts", response_model=ShortList)
 def shorts(job_id: str) -> ShortList:
     job = jobs.get(job_id)
     if job is None:
@@ -254,7 +259,7 @@ def shorts(job_id: str) -> ShortList:
     return ShortList(job_id=job_id, shorts=items)
 
 
-@app.patch("/jobs/{job_id}/shorts/{candidate_id}/title", response_model=ShortOut)
+@app.patch(BASE + "/jobs/{job_id}/shorts/{candidate_id}/title", response_model=ShortOut)
 def update_short_title(job_id: str, candidate_id: str, req: TitleUpdate) -> ShortOut:
     """쇼츠 제목을 바꾼다.
 
@@ -334,7 +339,7 @@ th{{color:#8f8b9c;font-size:12px}} a{{color:#ff8a5c}}
 
 
 # ── 파일 서빙 ─────────────────────────────────────────────────────────
-@app.get("/files/{job_id}/{file_path:path}")
+@app.get(BASE + "/files/{job_id}/{file_path:path}")
 def serve(job_id: str, file_path: str) -> FileResponse:
     root = JobPaths(job_id).root.resolve()
     target = (root / file_path).resolve()
@@ -345,7 +350,7 @@ def serve(job_id: str, file_path: str) -> FileResponse:
     return FileResponse(target)
 
 
-@app.delete("/jobs/{job_id}", status_code=204)
+@app.delete(BASE + "/jobs/{job_id}", status_code=204)
 def delete_job(job_id: str) -> None:
     if jobs.get(job_id) is None:
         raise HTTPException(404, f"작업을 찾을 수 없습니다: {job_id}")

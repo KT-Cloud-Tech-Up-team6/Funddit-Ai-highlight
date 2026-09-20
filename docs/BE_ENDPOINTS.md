@@ -2,7 +2,8 @@
 
 라이브 커머스 방송 VOD를 **다시보기 타임라인**과 **하이라이트 쇼츠**로 변환하는 AI 서비스입니다.
 
-- Base URL — 배포 후 전달 (로컬 개발: `http://localhost:8000`)
+- **Base Path** — `/api/v1/ai` (전사 공통 URL 경로 버저닝 규칙)
+- 호스트 — 배포 후 전달 (로컬 개발: `http://localhost:8000`)
 - 인증 — 현재 없음 (내부망 전제. 필요하면 요청 주세요)
 - 응답 — 모두 `application/json`, UTF-8
 - Swagger — 서버 실행 후 `/docs`
@@ -15,16 +16,16 @@
 ## 1. 전체 흐름
 
 ```
-① POST /jobs                       영상 + 라이브 채팅 업로드  → job_id
+① POST /api/v1/ai/jobs                       영상 + 라이브 채팅 업로드  → job_id
        ↓  (백그라운드: 소재판정 → 음성인식 → 구간분할 → 타임라인)
-② GET  /jobs/{id}                  폴링으로 진행 상태 확인
+② GET  /api/v1/ai/jobs/{id}                  폴링으로 진행 상태 확인
        ↓
-③ GET  /jobs/{id}/timeline         다시보기 타임라인          ← 여기서 끝나도 됨
-③ GET  /jobs/{id}/candidates       쇼츠 후보 목록
+③ GET  /api/v1/ai/jobs/{id}/timeline         다시보기 타임라인          ← 여기서 끝나도 됨
+③ GET  /api/v1/ai/jobs/{id}/candidates       쇼츠 후보 목록
        ↓
-④ POST /jobs/{id}/select           판매자가 고른 구간 전달
+④ POST /api/v1/ai/jobs/{id}/select           판매자가 고른 구간 전달
        ↓  (백그라운드: 자막 생성 → 렌더링)
-⑤ GET  /jobs/{id}/shorts           완성된 쇼츠
+⑤ GET  /api/v1/ai/jobs/{id}/shorts           완성된 쇼츠
 ```
 
 **④에서 한 번 멈춥니다.** 자막 생성이 구간당 약 9원이라, 선택하지 않은 구간까지
@@ -45,23 +46,23 @@
 
 | 메서드 | 경로 | 용도 |
 | --- | --- | --- |
-| `GET` | `/health` | 서버·의존성 상태 |
-| `POST` | `/screen` | 소재 적합성만 사전 판정 (빠름) |
-| `POST` | `/jobs` | 작업 생성 (영상 업로드) |
-| `GET` | `/jobs/{job_id}` | 진행 상태 폴링 |
-| `GET` | `/jobs/{job_id}/timeline` | 다시보기 타임라인 |
-| `GET` | `/jobs/{job_id}/candidates` | 쇼츠 후보 목록 |
-| `POST` | `/jobs/{job_id}/select` | 구간 선택 → 쇼츠 생성 |
-| `GET` | `/jobs/{job_id}/shorts` | 완성된 쇼츠 |
-| `PATCH` | `/jobs/{job_id}/shorts/{candidate_id}/title` | 쇼츠 제목 수정 |
-| `DELETE` | `/jobs/{job_id}` | 작업 삭제 (결과 파일 포함) |
-| `GET` | `/files/{job_id}/{path}` | 결과 파일 서빙 (영상·썸네일) |
+| `GET` | `/api/v1/ai/health` | 서버·의존성 상태 |
+| `POST` | `/api/v1/ai/screen` | 소재 적합성만 사전 판정 (빠름) |
+| `POST` | `/api/v1/ai/jobs` | 작업 생성 (영상 업로드) |
+| `GET` | `/api/v1/ai/jobs/{job_id}` | 진행 상태 폴링 |
+| `GET` | `/api/v1/ai/jobs/{job_id}/timeline` | 다시보기 타임라인 |
+| `GET` | `/api/v1/ai/jobs/{job_id}/candidates` | 쇼츠 후보 목록 |
+| `POST` | `/api/v1/ai/jobs/{job_id}/select` | 구간 선택 → 쇼츠 생성 |
+| `GET` | `/api/v1/ai/jobs/{job_id}/shorts` | 완성된 쇼츠 |
+| `PATCH` | `/api/v1/ai/jobs/{job_id}/shorts/{candidate_id}/title` | 쇼츠 제목 수정 |
+| `DELETE` | `/api/v1/ai/jobs/{job_id}` | 작업 삭제 (결과 파일 포함) |
+| `GET` | `/api/v1/ai/files/{job_id}/{path}` | 결과 파일 서빙 (영상·썸네일) |
 
 ---
 
 ## 3. 상세
 
-### 3-1. `POST /jobs` — 작업 생성
+### 3-1. `POST /api/v1/ai/jobs` — 작업 생성
 
 `multipart/form-data`
 
@@ -78,7 +79,7 @@
 {
   "job_id": "e8a4328f30a2",
   "status": "queued",
-  "message": "접수했습니다. GET /jobs/{job_id}로 진행 상태를 확인하세요."
+  "message": "접수했습니다. GET /api/v1/ai/jobs/{job_id}로 진행 상태를 확인하세요."
 }
 ```
 
@@ -136,7 +137,7 @@
 
 ---
 
-### 3-2. `GET /jobs/{job_id}` — 진행 상태
+### 3-2. `GET /api/v1/ai/jobs/{job_id}` — 진행 상태
 
 폴링용입니다. **3~5초 간격**을 권장합니다.
 
@@ -176,7 +177,7 @@
 
 ---
 
-### 3-3. `GET /jobs/{job_id}/timeline` — 다시보기 타임라인
+### 3-3. `GET /api/v1/ai/jobs/{job_id}/timeline` — 다시보기 타임라인
 
 방송 전체를 **빈틈없이** 덮는 챕터 목록입니다. 시청자가 원하는 지점으로 이동하는 데 씁니다.
 
@@ -225,7 +226,7 @@
 
 ---
 
-### 3-4. `GET /jobs/{job_id}/candidates` — 쇼츠 후보
+### 3-4. `GET /api/v1/ai/jobs/{job_id}/candidates` — 쇼츠 후보
 
 판매자 선택 화면용입니다. 타임라인과 달리 **잘라 쓸 만한 구간만** 담깁니다.
 
@@ -242,7 +243,7 @@
       "end_ms": 363000,
       "duration_sec": 119.0,
       "source": "model",
-      "thumbnail_url": "/files/e8a4328f30a2/thumbs/seg_1.jpg",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/thumbs/seg_1.jpg",
       "evidence": ["고추기름도 순식간에", "2만 파스칼"],
       "comment_count": null,
       "warnings": []
@@ -256,7 +257,7 @@
       "end_ms": 240000,
       "duration_sec": 110.0,
       "source": "comments",
-      "thumbnail_url": "/files/e8a4328f30a2/thumbs/p2_0.jpg",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/thumbs/p2_0.jpg",
       "evidence": [],
       "comment_count": 12,
       "warnings": []
@@ -276,7 +277,7 @@
 
 ---
 
-### 3-5. `POST /jobs/{job_id}/select` — 구간 선택
+### 3-5. `POST /api/v1/ai/jobs/{job_id}/select` — 구간 선택
 
 ```json
 {
@@ -298,7 +299,7 @@
 
 ---
 
-### 3-6. `GET /jobs/{job_id}/shorts` — 완성된 쇼츠
+### 3-6. `GET /api/v1/ai/jobs/{job_id}/shorts` — 완성된 쇼츠
 
 ```json
 {
@@ -310,8 +311,8 @@
       "title": "[로보락 F25] 고추기름도 한 번에",
       "duration_sec": 119.0,
       "size_bytes": 28214602,
-      "video_url": "/files/e8a4328f30a2/shorts/seg_1/short.mp4",
-      "thumbnail_url": "/files/e8a4328f30a2/shorts/seg_1/thumb.jpg",
+      "video_url": "/api/v1/ai/files/e8a4328f30a2/shorts/seg_1/short.mp4",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/shorts/seg_1/thumb.jpg",
       "captions": [
         {
           "text": "물걸레+진공 동시 청소",
@@ -336,7 +337,7 @@
 
 ---
 
-### 3-7. `PATCH /jobs/{job_id}/shorts/{candidate_id}/title` — 제목 수정
+### 3-7. `PATCH /api/v1/ai/jobs/{job_id}/shorts/{candidate_id}/title` — 제목 수정
 
 AI가 정한 제목을 판매자가 바꿉니다.
 
@@ -350,7 +351,7 @@ AI가 정한 제목을 판매자가 바꿉니다.
 
 ---
 
-### 3-8. `POST /screen` — 소재 적합성 사전 판정
+### 3-8. `POST /api/v1/ai/screen` — 소재 적합성 사전 판정
 
 업로드 전에 이 영상이 쇼츠 소재로 쓸 만한지 빠르게 확인합니다.
 음성 인식을 돌리지 않아 **수 초**에 끝납니다.
@@ -375,14 +376,14 @@ AI가 정한 제목을 판매자가 바꿉니다.
 
 ---
 
-### 3-9. `GET /files/{job_id}/{path}` — 결과 파일
+### 3-9. `GET /api/v1/ai/files/{job_id}/{path}` — 결과 파일
 
 응답의 `video_url` · `thumbnail_url`을 그대로 붙여 쓰면 됩니다.
 Range 요청을 지원하므로 `<video>` 태그에 직접 넣어도 됩니다.
 
 ---
 
-### 3-10. `GET /health` — 상태 확인
+### 3-10. `GET /api/v1/ai/health` — 상태 확인
 
 ```json
 {
@@ -402,7 +403,7 @@ Range 요청을 지원하므로 `<video>` 태그에 직접 넣어도 됩니다.
 
 ---
 
-### 3-11. `DELETE /jobs/{job_id}` — 작업 삭제
+### 3-11. `DELETE /api/v1/ai/jobs/{job_id}` — 작업 삭제
 
 결과 파일까지 함께 지웁니다. 영상 파일이 커서 정리가 필요합니다.
 
@@ -441,7 +442,7 @@ BE 쪽 방송 ID와 매핑해서 보관해 주세요.
 import time
 import requests
 
-BASE = "http://localhost:8000"
+BASE = "http://localhost:8000/api/v1/ai"
 
 # ① 업로드
 with open("broadcast.mp4", "rb") as v, open("chat.json", "rb") as c:

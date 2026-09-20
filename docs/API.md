@@ -8,12 +8,12 @@
 ## 1. 전체 흐름
 
 ```
-① POST /jobs                     영상 + 라이브 채팅 업로드 → job_id
-② GET  /jobs/{id}                2~5초 폴링             → 진행 상태
-③ GET  /jobs/{id}/timeline       다시보기 챕터
-④ GET  /jobs/{id}/candidates     쇼츠 후보 목록
-⑤ POST /jobs/{id}/select         고른 구간 전달
-⑥ GET  /jobs/{id}/shorts         완성된 쇼츠
+① POST /api/v1/ai/jobs                     영상 + 라이브 채팅 업로드 → job_id
+② GET  /api/v1/ai/jobs/{id}                2~5초 폴링             → 진행 상태
+③ GET  /api/v1/ai/jobs/{id}/timeline       다시보기 챕터
+④ GET  /api/v1/ai/jobs/{id}/candidates     쇼츠 후보 목록
+⑤ POST /api/v1/ai/jobs/{id}/select         고른 구간 전달
+⑥ GET  /api/v1/ai/jobs/{id}/shorts         완성된 쇼츠
 ```
 
 ### 두 기능은 독립적입니다
@@ -38,7 +38,7 @@
 
 ## 2. 엔드포인트
 
-### 2-1. `GET /health`
+### 2-1. `GET /api/v1/ai/health`
 
 서버와 모델 상태를 확인합니다. 배포 후 헬스체크에 씁니다.
 
@@ -60,7 +60,7 @@
 
 ---
 
-### 2-2. `POST /screen`
+### 2-2. `POST /api/v1/ai/screen`
 
 영상만 넣어 쇼츠 소재로 쓸 만한지 판정합니다. 음성 인식을 돌리지 않아 빠릅니다 (20분 영상 기준 약 40초).
 
@@ -89,7 +89,7 @@
 
 ---
 
-### 2-3. `POST /jobs`
+### 2-3. `POST /api/v1/ai/jobs`
 
 처리를 시작합니다. 즉시 `job_id`를 돌려주고 백그라운드에서 실행합니다.
 
@@ -161,13 +161,13 @@
 {
   "job_id": "e8a4328f30a2",
   "status": "queued",
-  "message": "접수했습니다. GET /jobs/{job_id}로 진행 상태를 확인하세요."
+  "message": "접수했습니다. GET /api/v1/ai/jobs/{job_id}로 진행 상태를 확인하세요."
 }
 ```
 
 ---
 
-### 2-4. `GET /jobs/{job_id}`
+### 2-4. `GET /api/v1/ai/jobs/{job_id}`
 
 진행 상태를 조회합니다. 2~5초 간격 폴링을 권장합니다.
 
@@ -214,7 +214,7 @@ queued → screening → transcribing → segmenting → timeline
 
 ---
 
-### 2-5. `GET /jobs/{job_id}/timeline`
+### 2-5. `GET /api/v1/ai/jobs/{job_id}/timeline`
 
 다시보기 타임라인입니다. 방송 전체를 주제별 챕터로 나눕니다.
 
@@ -267,7 +267,7 @@ queued → screening → transcribing → segmenting → timeline
 
 ---
 
-### 2-6. `GET /jobs/{job_id}/candidates`
+### 2-6. `GET /api/v1/ai/jobs/{job_id}/candidates`
 
 쇼츠 후보 목록입니다. 판매자 선택 화면에 씁니다.
 
@@ -284,7 +284,7 @@ queued → screening → transcribing → segmenting → timeline
       "end_ms": 378000,
       "duration_sec": 119.0,
       "source": "model",
-      "thumbnail_url": "/files/e8a4328f30a2/thumbs/seg_1.jpg",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/thumbs/seg_1.jpg",
       "evidence": ["고추기름을 저희가 한번 해봤어요"],
       "comment_count": null,
       "warnings": []
@@ -298,7 +298,7 @@ queued → screening → transcribing → segmenting → timeline
       "end_ms": 520000,
       "duration_sec": 90.0,
       "source": "comments",
-      "thumbnail_url": "/files/e8a4328f30a2/thumbs/p2_1.jpg",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/thumbs/p2_1.jpg",
       "evidence": [],
       "comment_count": 9,
       "warnings": []
@@ -334,7 +334,7 @@ queued → screening → transcribing → segmenting → timeline
 
 ---
 
-### 2-7. `POST /jobs/{job_id}/select`
+### 2-7. `POST /api/v1/ai/jobs/{job_id}/select`
 
 고른 구간으로 쇼츠 생성을 시작합니다.
 
@@ -358,7 +358,7 @@ queued → screening → transcribing → segmenting → timeline
 
 `letterbox`를 권장합니다. 진행자나 제품이 잘리지 않습니다.
 
-**응답** — `202 Accepted`, 본문은 `GET /jobs/{id}`와 같은 형식입니다.
+**응답** — `202 Accepted`, 본문은 `GET /api/v1/ai/jobs/{id}`와 같은 형식입니다.
 
 **상태 코드**
 
@@ -370,7 +370,7 @@ queued → screening → transcribing → segmenting → timeline
 
 ---
 
-### 2-8. `GET /jobs/{job_id}/shorts`
+### 2-8. `GET /api/v1/ai/jobs/{job_id}/shorts`
 
 완성된 쇼츠입니다.
 
@@ -384,8 +384,8 @@ queued → screening → transcribing → segmenting → timeline
       "title": "[로보락 F25] 고추기름도 한 번에",
       "duration_sec": 119.0,
       "size_bytes": 28311552,
-      "video_url": "/files/e8a4328f30a2/shorts/seg_1/short.mp4",
-      "thumbnail_url": "/files/e8a4328f30a2/shorts/seg_1/thumb.jpg",
+      "video_url": "/api/v1/ai/files/e8a4328f30a2/shorts/seg_1/short.mp4",
+      "thumbnail_url": "/api/v1/ai/files/e8a4328f30a2/shorts/seg_1/thumb.jpg",
       "captions": [
         {
           "text": "진공+물걸레 2가지 동시",
@@ -408,7 +408,7 @@ queued → screening → transcribing → segmenting → timeline
 
 ---
 
-### 2-9. `PATCH /jobs/{job_id}/shorts/{candidate_id}/title`
+### 2-9. `PATCH /api/v1/ai/jobs/{job_id}/shorts/{candidate_id}/title`
 
 AI가 정한 제목을 판매자가 바꿉니다.
 
@@ -424,7 +424,7 @@ AI가 정한 제목을 판매자가 바꿉니다.
 
 ---
 
-### 2-10. `GET /files/{job_id}/{path}`
+### 2-10. `GET /api/v1/ai/files/{job_id}/{path}`
 
 결과 파일을 서빙합니다. 다른 응답의 `video_url`, `thumbnail_url`이 이 형식입니다.
 
@@ -432,7 +432,7 @@ AI가 정한 제목을 판매자가 바꿉니다.
 
 ---
 
-### 2-10. `DELETE /jobs/{job_id}`
+### 2-10. `DELETE /api/v1/ai/jobs/{job_id}`
 
 작업 폴더를 통째로 삭제합니다. `204 No Content`를 반환합니다.
 
@@ -446,8 +446,8 @@ AI가 정한 제목을 판매자가 바꿉니다.
 
 ### 3-2. 타임아웃
 
-`POST /jobs`와 `POST /select`는 즉시 `202`를 반환하므로 타임아웃 걱정이 없습니다.
-`POST /screen`은 동기 처리라 20분 영상 기준 약 40초 걸립니다. 클라이언트 타임아웃을 60초 이상으로 잡으세요.
+`POST /api/v1/ai/jobs`와 `POST /select`는 즉시 `202`를 반환하므로 타임아웃 걱정이 없습니다.
+`POST /api/v1/ai/screen`은 동기 처리라 20분 영상 기준 약 40초 걸립니다. 클라이언트 타임아웃을 60초 이상으로 잡으세요.
 
 ### 3-3. 동시 실행 제한
 
@@ -466,7 +466,7 @@ GPU 점유 때문에 동시 2건으로 제한되어 있습니다. 초과분은 �
 
 ### 3-6. 파일 정리
 
-작업 폴더는 자동 삭제되지 않습니다. 보관 정책에 맞춰 `DELETE /jobs/{id}`를 호출하거나 배치로 정리하세요.
+작업 폴더는 자동 삭제되지 않습니다. 보관 정책에 맞춰 `DELETE /api/v1/ai/jobs/{id}`를 호출하거나 배치로 정리하세요.
 20분 영상 1건 기준 약 150MB를 씁니다 (원본 55MB + 쇼츠 4건 90MB + 중간 산출물).
 
 ---
@@ -496,12 +496,12 @@ BASE = "http://localhost:8000"
 
 # ① 업로드
 with open("broadcast.mp4", "rb") as v, open("comments.json", "rb") as c:
-    r = requests.post(f"{BASE}/jobs", files={"video": v, "comments": c})
+    r = requests.post(f"{BASE}/api/v1/ai/jobs", files={"video": v, "comments": c})
 job_id = r.json()["job_id"]
 
 # ② 폴링
 while True:
-    st = requests.get(f"{BASE}/jobs/{job_id}").json()
+    st = requests.get(f"{BASE}/api/v1/ai/jobs/{job_id}").json()
     if st["status"] in ("ready_for_selection", "rejected", "failed"):
         break
     time.sleep(3)
@@ -511,26 +511,26 @@ if st["status"] == "rejected":
     exit()
 
 # ③ 타임라인 — 다시보기 화면에 바로 노출
-timeline = requests.get(f"{BASE}/jobs/{job_id}/timeline").json()
+timeline = requests.get(f"{BASE}/api/v1/ai/jobs/{job_id}/timeline").json()
 for ch in timeline["chapters"]:
     print(ch["timestamp"], ch["category_name"], ch["title"])
 
 # ④ 쇼츠 후보 — 판매자에게 보여주고 선택 받기
-cands = requests.get(f"{BASE}/jobs/{job_id}/candidates").json()
+cands = requests.get(f"{BASE}/api/v1/ai/jobs/{job_id}/candidates").json()
 selected = [c["id"] for c in cands["candidates"][:3]]
 
 # ⑤ 선택 → 생성
-requests.post(f"{BASE}/jobs/{job_id}/select",
+requests.post(f"{BASE}/api/v1/ai/jobs/{job_id}/select",
               json={"candidate_ids": selected, "layout": "letterbox"})
 
 while True:
-    st = requests.get(f"{BASE}/jobs/{job_id}").json()
+    st = requests.get(f"{BASE}/api/v1/ai/jobs/{job_id}").json()
     if st["status"] in ("done", "failed"):
         break
     time.sleep(5)
 
 # ⑥ 결과
-shorts = requests.get(f"{BASE}/jobs/{job_id}/shorts").json()
+shorts = requests.get(f"{BASE}/api/v1/ai/jobs/{job_id}/shorts").json()
 for s in shorts["shorts"]:
     print(s["title"], BASE + s["video_url"])
 ```
