@@ -64,3 +64,6 @@ def ensure_runtime_env() -> None:
     os.environ.setdefault("LLM_USAGE_LOG", str(ROOT / "out" / "llm_usage.jsonl"))
     (ROOT / "out").mkdir(parents=True, exist_ok=True)
     WORKSPACE.mkdir(parents=True, exist_ok=True)
+
+# 콜백으로 보내는 파일 URL의 호스트. BE 가 바로 재생할 수 있어야 한다.
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000")

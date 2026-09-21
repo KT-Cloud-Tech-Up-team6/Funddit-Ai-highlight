@@ -385,3 +385,86 @@ def _segment_for(cand: dict, cues) -> "Segment":
     seg.start_ms = idx[start_cue].start_ms
     seg.end_ms = idx[end_cue].end_ms
     return seg
+
+
+# ── BE(live-service) 연동: 방송 종료 후 전자동 처리 ───────────────────
+# 판매자 선택 단계 없이 타임라인 + 쇼츠를 한 번에 만들고 결과를 콜백으로 민다.
+# 선택 화면이 있는 /jobs 흐름과 달리, BE 는 방송이 끝나면 요청만 걸고 기다린다.
+
+# liveId -> job_id (상태 조회용)
+_LIVE_JOBS: dict[str, str] = {}
+
+
+def live_job_id(live_id: str) -> str | None:
+    with _LOCK:
+        return _LIVE_JOBS.get(live_id)
+
+
+def run_for_live(job_id: str, live_id: str, highlight_id: str | None,
+                 layout: str, base_url: str) -> None:
+    """분석 → 상위 후보 자동 렌더링 → BE 콜백까지 한 번에 처리한다."""
+    from api import callback
+
+    with _LOCK:
+        _LIVE_JOBS[live_id] = job_id
+
+    paths = JobPaths(job_id)
+    _set(job_id, live_id=live_id, highlight_id=highlight_id)
+
+    try:
+        run_analysis(job_id)
+
+        job = get(job_id) or {}
+        if job.get("status") == JobStatus.REJECTED:
+            reason = (job.get("screen") or {}).get("reason", "쇼츠 소재로 부적합한 영상")
+            callback.send(live_id, callback.failed(highlight_id, reason))
+            return
+        if job.get("status") == JobStatus.FAILED:
+            callback.send(live_id, callback.failed(highlight_id, job.get("error", "분석 실패")))
+            return
+
+        # 판매자 선택이 없으므로 상위 후보를 자동으로 고른다.
+        cands = []
+        f = paths.root / "candidates.json"
+        if f.exists():
+            cands = storage.read_json(f)
+        picked = [c["id"] for c in cands[:callback.MAX_CLIPS]]
+
+        if picked:
+            run_render(job_id, picked, layout, False, 0.5)
+
+        markers, clips = [], []
+        if paths.timeline.exists():
+            data = storage.read_json(paths.timeline)
+            markers = callback.to_markers(data.get("chapters", []))
+
+        sf = paths.root / "shorts.json"
+        if sf.exists():
+            shorts = storage.read_json(sf)
+            # 렌더 결과에는 구간 시각이 없어 후보에서 끌어온다.
+            # shorts.json 에는 구간 시각과 URL이 없다 (조회 시점에 만든다).
+            by_id = {c["id"]: c for c in cands}
+            for s in shorts:
+                cid = s.get("candidate_id")
+                src = by_id.get(cid, {})
+                s.setdefault("start_ms", src.get("start_ms", 0))
+                s.setdefault("end_ms", src.get("end_ms", 0))
+                video = paths.short_video(cid)
+                if video.exists():
+                    s["video_url"] = paths.url(video)
+            clips = callback.to_clips(shorts, base_url, highlight_id)
+
+        _set(job_id, marker_count=len(markers), clip_count=len(clips))
+
+        if not markers and not clips:
+            callback.send(live_id, callback.failed(highlight_id, "생성된 결과가 없습니다"))
+            return
+
+        ok = callback.send(live_id, markers + clips)
+        _set(job_id, callback_sent=ok)
+
+    except Exception as e:  # noqa: BLE001
+        _set(job_id, status=JobStatus.FAILED,
+             error=f"{type(e).__name__}: {e}",
+             traceback=traceback.format_exc()[-2000:])
+        callback.send(live_id, callback.failed(highlight_id, f"{type(e).__name__}: {e}"))

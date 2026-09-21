@@ -137,6 +137,64 @@ class TitleUpdate(BaseModel):
                        description="새 제목. '[상품명] 제목' 형식을 그대로 보내면 된다.")
 
 
+# ── BE(live-service) 연동 계약 ────────────────────────────────────────
+# live-service 의 AiClient.requestHighlights(liveId, vodUrl, highlightId) 와
+# InternalLiveController.HighlightCallback 에 맞춘 형식이다.
+
+class ChatMessageIn(BaseModel):
+    """BE 가 넘기는 VOD 채팅 1건 (chat.chat_messages 기준)."""
+
+    comment_id: str | None = Field(None, description="원본 채팅 ID")
+    text: str = ""
+    at_ms: int | None = Field(None, description="방송 시작 기준 경과 ms")
+    sent_at: str | None = Field(None, description="절대시각(ISO8601). at_ms 없을 때 사용")
+    sender_id: str | None = None
+    kind: str = Field("chat", description="chat | like | purchase | join | system")
+
+
+class HighlightRequest(BaseModel):
+    """방송 종료 후 하이라이트·타임라인 생성 요청."""
+
+    vod_url: str = Field(..., alias="vodUrl", description="AI 서버가 접근 가능한 VOD URL")
+    highlight_id: str | None = Field(
+        None, alias="highlightId",
+        description="재생성 대상 ID. 최초 생성은 null. 콜백에 그대로 돌려준다.")
+    broadcast_started_at: str | None = Field(
+        None, alias="broadcastStartedAt",
+        description="방송 시작 시각(ISO8601). 채팅이 절대시각일 때 경과시간 환산에 쓴다.")
+    chats: list[ChatMessageIn] = Field(
+        default_factory=list,
+        description="VOD 채팅. 비어 있으면 채팅 기반 구간 탐지를 건너뛴다.")
+    product_name: str | None = Field(
+        None, alias="productName", description="쇼츠 제목의 [상품명]에 쓴다.")
+    terms: list[str] = Field(default_factory=list, description="음성 인식 보정용 고유명사")
+    layout: str = Field("crop", description="crop | letterbox")
+
+    model_config = {"populate_by_name": True}
+
+
+class HighlightAccepted(BaseModel):
+    """202 응답 — 접수만 알리고 결과는 콜백으로 보낸다."""
+
+    live_id: str
+    job_id: str
+    status: JobStatus
+    message: str
+
+
+class HighlightJobState(BaseModel):
+    """liveId 기준 진행 상태 조회."""
+
+    live_id: str
+    job_id: str | None = None
+    status: JobStatus | None = None
+    stage_detail: str | None = None
+    progress: float = 0.0
+    error: str | None = None
+    marker_count: int | None = None
+    clip_count: int | None = None
+
+
 class HealthCheck(BaseModel):
     ok: bool
     ffmpeg: bool

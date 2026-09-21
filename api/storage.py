@@ -167,3 +167,16 @@ def find_cached_transcript(fingerprint: str, exclude_job: str | None = None) -> 
         if t.exists():
             return t
     return None
+
+
+def download(url: str, dst: Path, *, timeout: int = 300) -> Path:
+    """원격 VOD를 내려받는다 (live-service 는 파일이 아니라 URL을 준다)."""
+    import urllib.request
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    req = urllib.request.Request(url, headers={"User-Agent": "funddit-ai-highlight/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp, dst.open("wb") as f:
+        shutil.copyfileobj(resp, f)
+    if dst.stat().st_size == 0:
+        raise ValueError("빈 파일을 받았습니다")
+    return dst

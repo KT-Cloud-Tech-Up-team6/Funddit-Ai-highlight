@@ -36,6 +36,9 @@ from api.schemas import (
     ShortOut,
     TimelineOut,
     TitleUpdate,
+    HighlightRequest,
+    HighlightAccepted,
+    HighlightJobState,
 )
 from api.storage import JobPaths
 from api.viewer import VIEWER_HTML
@@ -292,6 +295,74 @@ def update_short_title(job_id: str, candidate_id: str, req: TitleUpdate) -> Shor
         video_url=paths.url(paths.short_video(candidate_id)) or "",
         thumbnail_url=paths.url(thumb) if thumb.exists() else None,
     )
+
+
+# ── BE(live-service) 연동 ─────────────────────────────────────────────
+@app.post(BASE + "/lives/{live_id}/highlights",
+          response_model=HighlightAccepted, status_code=202)
+def request_highlights(live_id: str, req: HighlightRequest,
+                       background: BackgroundTasks) -> HighlightAccepted:
+    """방송 종료 후 하이라이트·타임라인 생성 요청 (live-service 전용).
+
+    /jobs 흐름과 달리 판매자 선택 단계가 없다. 분석부터 렌더링까지 한 번에 돌리고
+    결과를 POST /internal/v1/lives/{liveId}/highlights 로 밀어준다.
+
+    타임라인 챕터는 MARKER, 쇼츠는 CLIP(최대 3개)으로 함께 보낸다."""
+    job_id = jobs.new_job_id()
+    paths = JobPaths(job_id)
+    paths.prepare()
+
+    # 영상은 URL로 온다. 파일 업로드가 아니므로 내려받아 둔다.
+    try:
+        storage.download(req.vod_url, paths.video)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(422, f"VOD를 내려받지 못했습니다: {type(e).__name__}: {e}")
+
+    if req.chats:
+        storage.write_json(paths.comments,
+                           {"comments": [c.model_dump() for c in req.chats]})
+    if req.product_name or req.terms:
+        storage.write_json(paths.terms,
+                           {"product_name": req.product_name or "", "terms": req.terms})
+
+    start_ms = _iso_to_ms(req.broadcast_started_at)
+    jobs._set(job_id, status=JobStatus.QUEUED, stage_detail="대기 중", progress=0.0,
+              live_id=live_id, highlight_id=req.highlight_id,
+              broadcast_start_ms=start_ms,
+              has_terms=bool(req.product_name or req.terms),
+              has_comments=bool(req.chats))
+
+    background.add_task(jobs.run_for_live, job_id, live_id,
+                        req.highlight_id, req.layout, settings.PUBLIC_BASE_URL)
+    return HighlightAccepted(
+        live_id=live_id, job_id=job_id, status=JobStatus.QUEUED,
+        message="접수했습니다. 결과는 /internal/v1/lives/{liveId}/highlights 로 전송됩니다.")
+
+
+@app.get(BASE + "/lives/{live_id}/highlights/status", response_model=HighlightJobState)
+def highlight_status(live_id: str) -> HighlightJobState:
+    """진행 상태 조회. 콜백을 받지 못했을 때 확인용이다."""
+    job_id = jobs.live_job_id(live_id)
+    if job_id is None:
+        raise HTTPException(404, f"해당 방송의 작업을 찾을 수 없습니다: {live_id}")
+    job = jobs.get(job_id) or {}
+    return HighlightJobState(
+        live_id=live_id, job_id=job_id,
+        status=job.get("status"), stage_detail=job.get("stage_detail"),
+        progress=job.get("progress", 0.0), error=job.get("error"),
+        marker_count=job.get("marker_count"), clip_count=job.get("clip_count"),
+    )
+
+
+def _iso_to_ms(value: str | None) -> int | None:
+    if not value:
+        return None
+    from datetime import datetime
+
+    try:
+        return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp() * 1000)
+    except ValueError:
+        return None
 
 
 # ── 로컬 확인용 뷰어 ──────────────────────────────────────────────────
