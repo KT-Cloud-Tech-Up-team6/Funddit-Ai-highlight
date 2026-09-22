@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import logging
 import threading
 import time
 import traceback
@@ -24,9 +25,18 @@ _LOCK = threading.Lock()
 # STT가 GPU를 점유하므로 동시 실행을 제한한다.
 _SLOTS = threading.Semaphore(settings.MAX_CONCURRENT_JOBS)
 
+_logger = logging.getLogger("api.jobs")
+
 
 # ── 상태 관리 ─────────────────────────────────────────────────────────
 def _set(job_id: str, **fields) -> dict:
+    if "status" in fields or "error" in fields:
+        level = logging.ERROR if fields.get("error") else logging.INFO
+        _logger.log(level, fields.get("stage_detail") or "상태 변경",
+                    extra={"job_id": job_id,
+                           "status": str(fields.get("status", "")),
+                           "progress": fields.get("progress"),
+                           "error": fields.get("error")})
     with _LOCK:
         job = _JOBS.setdefault(job_id, {"job_id": job_id})
         job.update(fields)

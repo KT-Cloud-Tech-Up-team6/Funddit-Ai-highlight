@@ -1,16 +1,18 @@
+# 서버 운영에 필요한 것만. PoC 비교 도구는 requirements-dev.txt 에 있다.
+
 google-genai>=1.0
 
-# STT 로컬 (Whisper) — GPU는 nvidia-* 휠로 CUDA 런타임 제공 (툴킷 설치 불필요)
+# 음성 인식 (로컬) — GPU 는 nvidia-* 휠이 CUDA 런타임을 제공한다 (툴킷 설치 불필요)
 faster-whisper>=1.2
 nvidia-cublas-cu12
 nvidia-cudnn-cu12
 
-# STT 클라우드 (Google Speech-to-Text v2, CFG-2/3) — 서비스 계정 키 필요
-google-cloud-speech>=2.30
-
-# API 서버 (MVP)
+# API 서버
 fastapi>=0.115
 uvicorn[standard]>=0.30
 python-multipart>=0.0.9
+python-dotenv>=1.0
+
+# 영상 분석·썸네일
 pillow>=10.0
 numpy>=1.26

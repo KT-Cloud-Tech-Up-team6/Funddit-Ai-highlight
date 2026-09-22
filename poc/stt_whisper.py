@@ -8,6 +8,8 @@ Google STT 후보는 poc/stt_google.py (STEP 3).
 """
 from __future__ import annotations
 
+import logging
+
 import os
 import sys
 import threading
@@ -17,6 +19,8 @@ from pathlib import Path
 from poc.models import Cue
 from poc.transcript import merge_to_sentences, save_cues
 
+
+_logger = logging.getLogger("poc.stt")
 
 def _register_nvidia_dlls() -> None:
     """pip 설치된 nvidia-* 휠의 bin 디렉터리를 DLL 검색 경로에 추가 (Windows)."""
@@ -59,8 +63,8 @@ def _load_model(model_size: str, device: str):
             list(m.transcribe(np.zeros(16000, dtype=np.float32), language="ko")[0])
             return m, f"cuda/{ct}"
         except Exception as e:  # noqa: BLE001 - cuBLAS/cuDNN 미설치, 미지원 compute_type 등
-            print(f"[stt] CUDA {ct} 실패 ({type(e).__name__}: {str(e)[:70]})")
-    print("[stt] CUDA 사용 불가 -> CPU int8로 폴백")
+            _logger.warning("CUDA %s 실패: %s", ct, f"{type(e).__name__}: {str(e)[:70]}")
+    _logger.warning("CUDA 사용 불가 — CPU int8로 폴백 (처리 시간이 수 배 늘어난다)")
     return WhisperModel(model_size, device="cpu", compute_type="int8"), "cpu/int8"
 
 
@@ -92,7 +96,7 @@ def transcribe(
         with _CACHE_LOCK:
             _MODEL_CACHE[key] = (model, dev)
     t_load = time.time() - t0
-    print(f"[stt] 모델 {model_size} 로드 {t_load:.0f}초 ({dev})")
+    _logger.info("모델 로드 완료", extra={"model": model_size, "load_sec": round(t_load), "device": dev})
 
     # VAD: 계획서 14번 — 무음 구간 환각 대응
     # initial_prompt: 제품명·고유명사 힌트 (상품 용어 목록에서 생성)
@@ -105,9 +109,11 @@ def transcribe(
         for i, s in enumerate(segments, 1)
     ]
     t_run = time.time() - t1
-    print(
-        f"[stt] 추론 {t_run:.0f}초 / 오디오 {info.duration:.0f}초 "
-        f"(x{info.duration / max(t_run, 1e-6):.1f} 실시간) / 원시 세그먼트 {len(raw)}개"
+    _logger.info(
+        "음성 인식 완료",
+        extra={"infer_sec": round(t_run), "audio_sec": round(info.duration),
+               "realtime_factor": round(info.duration / max(t_run, 1e-6), 1),
+               "raw_segments": len(raw)},
     )
 
     cues = merge_to_sentences(raw) if merge else raw

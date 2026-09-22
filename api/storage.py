@@ -180,3 +180,29 @@ def download(url: str, dst: Path, *, timeout: int = 300) -> Path:
     if dst.stat().st_size == 0:
         raise ValueError("빈 파일을 받았습니다")
     return dst
+
+
+def purge_expired(retention_hours: int) -> list[str]:
+    """보관 기간이 지난 작업 폴더를 지운다.
+
+    영상 원본이 방송당 수백 MB라 무기한 보관하면 디스크가 찬다.
+    job.json 의 수정 시각을 기준으로 판단한다 — 작업이 끝나면 더 갱신되지 않는다.
+
+    retention_hours <= 0 이면 아무것도 지우지 않는다 (보관 정책 미적용).
+    """
+    if retention_hours <= 0 or not WORKSPACE.exists():
+        return []
+
+    import time
+
+    cutoff = time.time() - retention_hours * 3600
+    removed: list[str] = []
+    for state in WORKSPACE.glob("*/job.json"):
+        try:
+            if state.stat().st_mtime >= cutoff:
+                continue
+            shutil.rmtree(state.parent, ignore_errors=True)
+            removed.append(state.parent.name)
+        except OSError:
+            continue
+    return removed

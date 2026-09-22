@@ -13,8 +13,11 @@
 """
 from __future__ import annotations
 
+import logging
 import shutil
 import subprocess
+import threading
+import time
 import tempfile
 from pathlib import Path
 
@@ -55,6 +58,34 @@ app = FastAPI(
 # 전사 공통 규칙: URL 경로 버저닝 (/api/v1/...). AI 서비스는 /api/v1/ai 하위.
 # 응답에 담기는 파일 URL도 같은 접두를 써야 하므로 storage 와 값을 공유한다.
 BASE = storage.API_BASE
+
+_log = logging.getLogger("api.main")
+
+
+@app.on_event("startup")
+def _startup() -> None:
+    """기동 시 만료된 작업을 정리하고, 이후 주기적으로 반복한다.
+
+    영상 원본이 방송당 수백 MB라 쌓이면 디스크가 찬다."""
+    if settings.RETENTION_HOURS <= 0:
+        _log.info("보관 정책 미적용 — 작업 산출물을 지우지 않는다")
+        return
+
+    def sweep() -> None:
+        while True:
+            try:
+                removed = storage.purge_expired(settings.RETENTION_HOURS)
+                if removed:
+                    _log.info("만료 작업 정리",
+                              extra={"removed": len(removed),
+                                     "retention_hours": settings.RETENTION_HOURS})
+            except Exception as e:  # noqa: BLE001 — 정리 실패가 서버를 죽이면 안 된다
+                _log.error("작업 정리 실패", extra={"error": f"{type(e).__name__}: {e}"})
+            time.sleep(3600)
+
+    threading.Thread(target=sweep, daemon=True, name="purge-expired").start()
+    _log.info("작업 산출물 보관 정책 적용",
+              extra={"retention_hours": settings.RETENTION_HOURS})
 
 
 # ── 헬스체크 ──────────────────────────────────────────────────────────
@@ -319,8 +350,14 @@ def request_highlights(live_id: str, req: HighlightRequest,
         raise HTTPException(422, f"VOD를 내려받지 못했습니다: {type(e).__name__}: {e}")
 
     if req.chats:
-        storage.write_json(paths.comments,
-                           {"comments": [c.model_dump() for c in req.chats]})
+        # 작성자 식별자는 분석에 쓰지 않으므로 저장하지 않는다.
+        # 구간 탐지는 시각만 보고, 본문은 근거 확인에만 쓴다.
+        storage.write_json(paths.comments, {
+            "comments": [
+                {k: v for k, v in c.model_dump().items() if k != "sender_id"}
+                for c in req.chats
+            ]
+        })
     if req.product_name or req.terms:
         storage.write_json(paths.terms,
                            {"product_name": req.product_name or "", "terms": req.terms})

@@ -18,7 +18,7 @@
 ## 빠른 시작
 
 ```bash
-# 1. 설치
+# 1. 설치 (개발 도구까지 필요하면 requirements-dev.txt)
 pip install -r requirements.txt
 
 # 2. 키 설정 — 프로젝트 루트에 .env 파일 생성
@@ -59,6 +59,12 @@ API 문서는 서버 실행 후 `/docs`에서 볼 수 있습니다.
 | `SHORTS_MIN_CUTS_PER_MIN` | `10` | 소재 적합성 기준 |
 | `SHORTS_P2_MIN_COMMENTS` | `8` | 질문 집중 판정 기준 (60초 창) |
 | `SHORTS_MAX_JOBS` | `2` | 동시 실행 제한 |
+| `SHORTS_RETENTION_HOURS` | `168` | 작업 산출물 보관 시간 (0이면 무기한) |
+| `LOG_FORMAT` | `json` | `json`(수집용) / `text`(로컬 개발) |
+| `LOG_LEVEL` | `INFO` | |
+| `LIVE_SERVICE_URL` | — | BE 콜백 대상. 없으면 콜백을 보내지 않음 |
+| `INTERNAL_GATEWAY_SECRET` | — | 콜백 시 `X-Internal-Secret` 헤더 |
+| `PUBLIC_BASE_URL` | `http://localhost:8000` | 콜백에 담는 파일 URL 호스트 |
 
 GPU를 쓰려면 CUDA 런타임이 필요합니다. 별도 툴킷 설치 없이 pip으로 받습니다.
 

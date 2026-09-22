@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# PoC 모델 비교용 — 서버 운영에는 불필요하다.
+# poc/pipeline.py, poc/stt_google.py, eval/bench_*.py 에서만 쓴다.
+google-cloud-speech>=2.30
+anthropic>=0.40
+openai>=1.50

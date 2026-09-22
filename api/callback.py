@@ -16,6 +16,7 @@ BE 가 검증하는 것 (InternalLiveController.HighlightCallback):
 from __future__ import annotations
 
 import json
+import logging
 import os
 import urllib.error
 import urllib.request
@@ -48,6 +49,8 @@ PART_SCENE_LABEL = {
     "P3": "PRICE_BENEFIT",
     "P4": "SPEC",
 }
+
+_logger = logging.getLogger("api.callback")
 
 MAX_CLIPS = 3  # BE 와 동일한 상한. 미리 잘라 보내 초과분 유실을 눈에 보이게 한다.
 
@@ -139,6 +142,8 @@ def send(live_id: str, payload: list[dict], *, timeout: int = 20) -> bool:
     """
     base = os.environ.get("LIVE_SERVICE_URL", "").rstrip("/")
     if not base:
+        _logger.warning("LIVE_SERVICE_URL 미설정 — 콜백을 보내지 않는다",
+                        extra={"live_id": live_id, "items": len(payload)})
         return False
 
     req = urllib.request.Request(
@@ -154,6 +159,12 @@ def send(live_id: str, payload: list[dict], *, timeout: int = 20) -> bool:
 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return 200 <= resp.status < 300
-    except (urllib.error.URLError, OSError, TimeoutError):
+            ok = 200 <= resp.status < 300
+            _logger.info("콜백 전송", extra={"live_id": live_id, "items": len(payload),
+                                          "http_status": resp.status, "ok": ok})
+            return ok
+    except (urllib.error.URLError, OSError, TimeoutError) as e:
+        # 콜백 실패가 이미 끝난 생성 작업을 되돌릴 이유는 없다. 로그만 남긴다.
+        _logger.error("콜백 전송 실패", extra={"live_id": live_id, "items": len(payload),
+                                           "error": f"{type(e).__name__}: {e}"})
         return False

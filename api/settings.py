@@ -61,9 +61,16 @@ def ensure_runtime_env() -> None:
     global LLM_MODEL, STT_MODEL
     LLM_MODEL = os.environ.get("GEMINI_MODEL", LLM_MODEL)
     STT_MODEL = os.environ.get("SHORTS_STT_MODEL", STT_MODEL)
+    from api import logging_config
+    logging_config.setup()
+
     os.environ.setdefault("LLM_USAGE_LOG", str(ROOT / "out" / "llm_usage.jsonl"))
     (ROOT / "out").mkdir(parents=True, exist_ok=True)
     WORKSPACE.mkdir(parents=True, exist_ok=True)
 
 # 콜백으로 보내는 파일 URL의 호스트. BE 가 바로 재생할 수 있어야 한다.
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "http://localhost:8000")
+
+# 작업 산출물 보관 시간. 0이면 보관 정책 미적용(무기한).
+# 영상 원본이 방송당 수백 MB라 기본 7일로 둔다.
+RETENTION_HOURS = int(os.environ.get("SHORTS_RETENTION_HOURS", "168"))

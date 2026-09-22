@@ -1,0 +1,23 @@
+.git
+.github
+.claude
+.env
+.env.example
+__pycache__
+*.pyc
+.venv
+venv
+
+# 용량이 큰 것들 — 이미지에 넣지 않는다
+workspace/
+out/
+data/
+eval/
+docs/
+*.mp4
+*.mov
+*.webm
+*.jpg
+*.png
+
+README.md

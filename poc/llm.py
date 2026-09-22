@@ -10,6 +10,7 @@ mock_file을 주면 API 없이 저장된 응답을 반환한다 (오프라인 �
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import sys
@@ -41,15 +42,19 @@ PRICE_PER_M: dict[str, tuple[float, float] | None] = {
 }
 
 
-def _log(msg: str) -> None:
+_logger = logging.getLogger("poc.llm")
+
+
+def _log(msg: str, **extra) -> None:
     """콘솔 인코딩(Windows cp949)이 특수문자를 못 써도 죽지 않게.
 
-    API 서버에서는 print 한 줄의 UnicodeEncodeError가 작업 전체를 실패시킨다."""
+    API 서버에서는 로그 한 줄의 UnicodeEncodeError가 작업 전체를 실패시킨다."""
     try:
-        print(msg)
+        _logger.info(msg, extra=extra)
     except UnicodeEncodeError:
         enc = getattr(sys.stdout, "encoding", None) or "utf-8"
-        print(msg.encode(enc, errors="replace").decode(enc, errors="replace"))
+        safe = msg.encode(enc, errors="replace").decode(enc, errors="replace")
+        _logger.info(safe, extra=extra)
 
 
 def provider_of(model: str) -> str:
@@ -171,7 +176,11 @@ class LLM:
         with log.open("a", encoding="utf-8") as f:
             f.write(json.dumps(self.last_usage, ensure_ascii=False) + "\n")
         cost = f"${est:.4f}" if est is not None else "$?"
-        _log(f"[llm] {self.model} {self.tag}: in={in_tok} out={out_tok} think={think_tok} {elapsed:.1f}s ~ {cost}")
+        # 토큰·비용을 구조화 필드로 남긴다 — 수집기에서 집계할 수 있어야 한다.
+        _log(f"[llm] {self.model} {self.tag}: in={in_tok} out={out_tok} think={think_tok} {elapsed:.1f}s ~ {cost}",
+             model=self.model, tag=self.tag, provider=self.provider,
+             in_tokens=in_tok, out_tokens=out_tok, thinking_tokens=think_tok,
+             elapsed_sec=round(elapsed, 1), est_usd=est)
         try:
             return _extract_json(text)
         except json.JSONDecodeError:
