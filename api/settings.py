@@ -64,8 +64,9 @@ def ensure_runtime_env() -> None:
     from api import logging_config
     logging_config.setup()
 
-    os.environ.setdefault("LLM_USAGE_LOG", str(ROOT / "out" / "llm_usage.jsonl"))
-    (ROOT / "out").mkdir(parents=True, exist_ok=True)
+    # 컨테이너에서 /app 이 읽기전용일 수 있으므로 기본값을 작업 폴더 아래로 둔다.
+    os.environ.setdefault("LLM_USAGE_LOG", str(WORKSPACE / "llm_usage.jsonl"))
+    Path(os.environ["LLM_USAGE_LOG"]).parent.mkdir(parents=True, exist_ok=True)
     WORKSPACE.mkdir(parents=True, exist_ok=True)
 
 # 콜백으로 보내는 파일 URL의 호스트. BE 가 바로 재생할 수 있어야 한다.

@@ -12,3 +12,7 @@ workspace/
 # 개인 작업 환경 설정
 .claude/
 .env.example
+
+# 로컬 실행 산출물
+server.log
+_job.txt
