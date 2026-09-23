@@ -1,0 +1,56 @@
+name: CI
+
+# 검증만 한다. 이미지 빌드·ECR push 는 build-and-push.yml 이 맡는다
+# (인프라팀 규격상 PR 에서는 OIDC 인증이 거부되므로 섞으면 안 된다).
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 게이트 로직 회귀. API 키·FFmpeg·GPU 없이 도는 것만 돌린다.
+      - name: Offline smoke
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          pip install --quiet pydantic
+          python -m eval.smoke_offline
+
+  # 이미지가 실제로 뜨는지 확인한다. ECR push 는 하지 않는다 —
+  # GPU·API 키가 없어 health 는 ok:false 지만 200 이 오면 앱이 기동한 것이고,
+  # 의존성 누락·import 오류를 여기서 잡는다.
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: fundit-ai-highlight:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify container
+        run: |
+          container_id=$(docker run --detach --publish 127.0.0.1:8000:8000 \
+            --env GEMINI_API_KEY=ci-dummy fundit-ai-highlight:ci)
+          trap 'docker logs "$container_id"; docker rm --force "$container_id"' EXIT
+          curl --fail --silent --show-error --max-time 10 \
+            --retry 15 --retry-delay 2 --retry-all-errors --retry-max-time 60 \
+            http://127.0.0.1:8000/api/v1/ai/health --output /dev/null
