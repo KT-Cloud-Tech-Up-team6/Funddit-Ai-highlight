@@ -29,8 +29,11 @@ from typing import Any, Iterable
 # 플랫폼마다 다른 필드명을 내부 표준으로 매핑한다.
 # 새 플랫폼이 붙으면 여기에 후보를 추가하면 된다.
 _TS_KEYS = (
+    # live-service AiClient.CommentInput 이 atMs 로 보낸다. 스키마가 at_ms 로 바꿔 넘긴다.
+    "at_ms", "atMs",
     "ts_ms", "timestamp_ms", "offset_ms", "playtime_ms", "elapsed_ms",
     "ts", "timestamp", "offset", "playtime", "time", "createdAt", "created_at",
+    "sent_at", "sentAt",
 )
 _TEXT_KEYS = ("text", "message", "msg", "content", "body", "comment")
 _AUTHOR_KEYS = ("author", "user", "userId", "user_id", "nickname", "nick", "sender")

@@ -142,14 +142,21 @@ class TitleUpdate(BaseModel):
 # InternalLiveController.HighlightCallback 에 맞춘 형식이다.
 
 class ChatMessageIn(BaseModel):
-    """BE 가 넘기는 VOD 채팅 1건 (chat.chat_messages 기준)."""
+    """BE 가 넘기는 VOD 채팅 1건 (chat.chat_messages 기준).
 
-    comment_id: str | None = Field(None, description="원본 채팅 ID")
+    BE 는 camelCase 로 보낸다 (AiClient.CommentInput: commentId·atMs·senderId).
+    snake_case 도 받는다 — 다른 플랫폼 형식을 그대로 넘겨도 동작해야 한다.
+    """
+
+    comment_id: str | None = Field(None, alias="commentId", description="원본 채팅 ID")
     text: str = ""
-    at_ms: int | None = Field(None, description="방송 시작 기준 경과 ms")
-    sent_at: str | None = Field(None, description="절대시각(ISO8601). at_ms 없을 때 사용")
-    sender_id: str | None = None
+    at_ms: int | None = Field(None, alias="atMs", description="방송 시작 기준 경과 ms")
+    sent_at: str | None = Field(None, alias="sentAt",
+                                description="절대시각(ISO8601). at_ms 없을 때 사용")
+    sender_id: str | None = Field(None, alias="senderId")
     kind: str = Field("chat", description="chat | like | purchase | join | system")
+
+    model_config = {"populate_by_name": True}
 
 
 class HighlightRequest(BaseModel):
