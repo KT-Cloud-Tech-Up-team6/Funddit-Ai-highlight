@@ -16,3 +16,6 @@ python-dotenv>=1.0
 # 영상 분석·썸네일
 pillow>=10.0
 numpy>=1.26
+
+# Kafka 구독 (live.ended.v1) — ENABLE_KAFKA_CONSUMER=1 일 때만 사용
+kafka-python>=2.0

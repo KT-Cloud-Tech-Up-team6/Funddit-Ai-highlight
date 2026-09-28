@@ -67,6 +67,11 @@ def _startup() -> None:
     """기동 시 만료된 작업을 정리하고, 이후 주기적으로 반복한다.
 
     영상 원본이 방송당 수백 MB라 쌓이면 디스크가 찬다."""
+    # live.ended.v1 구독 — ENABLE_KAFKA_CONSUMER=1 일 때만 뜬다.
+    # 보관 정책보다 먼저 띄운다 — 정책이 꺼져 있어도 구독은 돌아야 한다.
+    from api import consumer
+    consumer.start()
+
     if settings.RETENTION_HOURS <= 0:
         _log.info("보관 정책 미적용 — 작업 산출물을 지우지 않는다")
         return
