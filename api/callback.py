@@ -152,10 +152,12 @@ def send(live_id: str, payload: list[dict], *, timeout: int = 20) -> bool:
         method="POST",
         headers={"Content-Type": "application/json; charset=utf-8"},
     )
-    secret = os.environ.get("INTERNAL_GATEWAY_SECRET")
+    # live-service 의 InternalGatewaySecretFilter 가 확인하는 헤더.
+    # 이름은 modules:common 의 AuthHeaders.INTERNAL_API_KEY 계약을 따른다 —
+    # 한 글자만 달라도 조용히 401 이 된다.
+    secret = os.environ.get("INTERNAL_API_KEY") or os.environ.get("INTERNAL_GATEWAY_SECRET")
     if secret:
-        # live-service 의 InternalGatewaySecretFilter 가 확인하는 헤더
-        req.add_header("X-Internal-Secret", secret)
+        req.add_header("X-Internal-Api-Key", secret)
 
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
