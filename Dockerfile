@@ -23,7 +23,10 @@ WORKDIR /app
 
 # 의존성을 먼저 복사해 레이어 캐시를 살린다 (Whisper·CUDA 휠이 무겁다)
 COPY requirements.txt .
-RUN python3.11 -m pip install --no-cache-dir -r requirements.txt
+# pip 을 먼저 올린다 — 우분투 기본 pip(22.x)은 의존성 그래프가 커지면
+# resolver 가 AssertionError 로 죽는다 (kafka-python 추가 후 실제로 터졌다).
+RUN python3.11 -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && python3.11 -m pip install --no-cache-dir -r requirements.txt
 
 COPY api/ ./api/
 COPY poc/ ./poc/
