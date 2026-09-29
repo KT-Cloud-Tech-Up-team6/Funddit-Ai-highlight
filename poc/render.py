@@ -11,15 +11,12 @@ from poc.models import Caption
 FONT = "Han Santteut Dotum"
 FONT_FALLBACK = "Malgun Gothic"
 
-# 파스텔 팔레트 (ASS는 BGR 순서. &HAABBGGRR 형식에서 AA=00이 불투명)
-#   형광색 대신 채도를 낮춘 색을 쓴다. 어두운 영상 위에서도 눈이 편하다.
+# ASS는 BGR 순서. &HAABBGGRR 형식에서 AA=00이 불투명.
 C_WHITE = "&H00FFFFFF"     # 기본 흰색
 C_CREAM = "&H00E8F4FF"     # 크림 (아주 옅은 노랑) — 제목
-C_MINT = "&H00D4F0D0"      # 민트 — 기능·스펙
-C_CORAL = "&H00A0A0FF"     # 코랄 (연한 분홍빨강) — 혜택·가격
-C_LAVENDER = "&H00F0D8C0"  # 라벤더 (연한 파랑보라) — 시연 결과
-C_INK = "&H00302820"       # 외곽선 (완전 검정 대신 살짝 따뜻한 먹색)
-C_SHADOW = "&H60000000"    # 그림자 (반투명)
+C_INK = "&H00302820"       # 제목 외곽선 (살짝 따뜻한 먹색)
+C_SHADOW = "&H80000000"    # 그림자 검정 50% — 강조 자막의 번지는 그림자
+C_BACK = "&HCC000000"      # 발화 자막 배경 박스 검정 80% (시안 opacity 80%)
 
 # 숫자·핵심어 강조색 — 코랄. 형광 주황보다 부드럽다.
 HIGHLIGHT_COLOR = "&H007090FF&"
@@ -35,11 +32,11 @@ YCbCr Matrix: TV.709
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Title,{font},78,{cream},{white},{ink},{shadow},-1,0,0,0,100,100,3,0,1,5,3,8,60,60,{title_mv},1
-Style: Speech,{font},39,{white},{white},{ink},&HCC000000,0,0,0,0,100,100,0,0,3,7,0,8,205,205,{speech_mv},1
-Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
-Style: Spec,{font},80,{mint},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
-Style: Benefit,{font},86,{coral},{white},{ink},{shadow},-1,0,0,0,102,102,2,0,1,6,3,2,60,60,{point_mv},1
-Style: Result,{font},82,{lavender},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,6,3,2,60,60,{point_mv},1
+Style: Speech,{font},39,{white},{white},{ink},{back},0,0,0,0,100,100,0,0,3,7,0,8,205,205,{speech_mv},1
+Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
+Style: Spec,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
+Style: Benefit,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
+Style: Result,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -88,8 +85,8 @@ def build_ass(captions: list[Caption], out_path: str | Path, title: str = "", du
     layout: "crop"(9:16 꽉 채움) | "letterbox"(원본 비율 유지, 위아래 여백) — 자막 세로 위치가 달라진다."""
     margins = MARGIN_LETTERBOX if layout == "letterbox" else MARGIN_CROP
     lines = [ASS_HEADER.format(
-        font=FONT, white=C_WHITE, cream=C_CREAM, mint=C_MINT,
-        coral=C_CORAL, lavender=C_LAVENDER, ink=C_INK, shadow=C_SHADOW,
+        font=FONT, white=C_WHITE, cream=C_CREAM,
+        ink=C_INK, shadow=C_SHADOW, back=C_BACK,
         **margins)]
     if title:
         end = duration_ms if duration_ms else max((c.end_ms for c in captions if c.end_ms), default=0) + 10_000
