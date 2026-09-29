@@ -105,6 +105,8 @@ def to_clips(shorts: list[dict], base_url: str,
             "startSec": max(0, start),
             "endSec": end,
             "clipUrl": absolute(url, base_url),   # BE 는 바로 재생할 URL 을 기대한다
+            # 선택 필드. BE 가 아직 안 받으면 무시되고, 받기 시작하면 그대로 쓰인다.
+            "thumbnailUrl": absolute(s.get("thumbnail_url") or "", base_url),
             "caption": s.get("caption") or None,
             "status": "COMPLETED",
         })

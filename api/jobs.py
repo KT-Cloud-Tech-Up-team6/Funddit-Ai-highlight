@@ -462,6 +462,9 @@ def run_for_live(job_id: str, live_id: str, highlight_id: str | None,
                 video = paths.short_video(cid)
                 if video.exists():
                     s["video_url"] = paths.url(video)
+                thumb = paths.short_thumb(cid)
+                if thumb.exists():
+                    s["thumbnail_url"] = paths.url(thumb)
             clips = callback.to_clips(shorts, base_url, highlight_id)
 
         _set(job_id, marker_count=len(markers), clip_count=len(clips))
