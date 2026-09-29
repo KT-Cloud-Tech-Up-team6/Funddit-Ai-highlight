@@ -54,6 +54,15 @@ _logger = logging.getLogger("api.callback")
 
 MAX_CLIPS = 3  # BE 와 동일한 상한. 미리 잘라 보내 초과분 유실을 눈에 보이게 한다.
 
+# BE live_highlights.title 이 100자 제한이다. 넘기면 그 콜백에 담긴
+# 항목 전체가 저장되지 않으므로 보내기 전에 자른다.
+MAX_TITLE = 100
+
+
+def _title(value) -> str | None:
+    t = (str(value).strip() if value else "")
+    return t[:MAX_TITLE] if t else None
+
 
 def scene_label(category: str) -> str:
     label = SCENE_LABEL.get(str(category or "").lower(), "SPEC")
@@ -71,8 +80,7 @@ def to_markers(chapters: list[dict]) -> list[dict]:
             "highlightId": None,
             "kind": "MARKER",
             "sceneLabel": scene_label(c.get("category", "")),
-            # 제목은 생성 단계에서 이미 18자로 맞춘다. 여기서 또 자르지 않는다.
-            "title": c.get("title") or None,
+            "title": _title(c.get("title")),
             "startSec": max(0, start),
             "endSec": None,                       # MARKER 는 시점이므로 null
             "clipUrl": None,
@@ -101,7 +109,7 @@ def to_clips(shorts: list[dict], base_url: str,
             "highlightId": highlight_id,
             "kind": "CLIP",
             "sceneLabel": PART_SCENE_LABEL.get(s.get("part_type", ""), "DEMO"),
-            "title": s.get("title") or None,
+            "title": _title(s.get("title")),
             "startSec": max(0, start),
             "endSec": end,
             "clipUrl": absolute(url, base_url),   # BE 는 바로 재생할 URL 을 기대한다
@@ -129,11 +137,22 @@ def failed(highlight_id: str | None, reason: str) -> list[dict]:
 
 
 def absolute(url: str, base_url: str) -> str | None:
+    """상대 경로에 PUBLIC_BASE_URL 을 붙여 브라우저가 바로 열 수 있게 한다.
+
+    FE 가 <video>·<img> 로 직접 부르므로 외부에서 접근 가능한 HTTPS 여야 한다.
+    http 나 localhost 면 브라우저가 막거나 못 찾는다 — 배포 설정 실수를
+    콜백 실패가 아니라 로그로 먼저 알아채려고 여기서 경고한다.
+    """
     if not url:
         return None
     if url.startswith(("http://", "https://")):
         return url
-    return f"{base_url.rstrip('/')}{url}"
+
+    base = base_url.rstrip("/")
+    if not base.startswith("https://"):
+        _logger.warning("PUBLIC_BASE_URL 이 HTTPS 가 아니다 — FE 에서 재생이 막힐 수 있다",
+                        extra={"public_base_url": base})
+    return f"{base}{url}"
 
 
 def send(live_id: str, payload: list[dict], *, timeout: int = 20) -> bool:
