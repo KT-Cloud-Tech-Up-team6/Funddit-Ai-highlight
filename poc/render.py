@@ -33,10 +33,10 @@ YCbCr Matrix: TV.709
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
 Style: Title,{font},78,{cream},{white},{ink},{shadow},-1,0,0,0,100,100,3,0,1,5,3,8,60,60,{title_mv},1
 Style: Speech,{font},39,{white},{white},{ink},{back},0,0,0,0,100,100,0,0,3,7,0,8,205,205,{speech_mv},1
-Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
-Style: Spec,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
-Style: Benefit,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
-Style: Result,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,6,2,60,60,{point_mv},1
+Style: Point,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,0,2,60,60,{point_mv},1
+Style: Spec,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,0,2,60,60,{point_mv},1
+Style: Benefit,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,0,2,60,60,{point_mv},1
+Style: Result,{font},80,{white},{white},{ink},{shadow},-1,0,0,0,100,100,2,0,1,0,0,2,60,60,{point_mv},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -107,11 +107,23 @@ def build_ass(captions: list[Caption], out_path: str | Path, title: str = "", du
                 text = text[:mid] + "\\N" + text[mid + 1:]
         lines.append(f"Dialogue: 0,{_ass_time(st)},{_ass_time(en)},Speech,,0,0,0,,{text}\n")
 
-    # 포인트 자막 — 크게, 색으로 강조
+    # 포인트 자막 — 크게, 흰 글자에 부드러운 그림자
+    #
+    # 스타일의 Shadow 값은 글자를 오프셋만큼 복사해 찍는 방식이라 가장자리가
+    # 딱딱하다. 번지는 그림자를 내려면 libass 의 \blur 를 써야 한다.
+    # 검정 반투명 글자를 한 겹 깔고 블러를 먹인 뒤 그 위에 본문을 올린다.
     for c in captions:
         style = EMPHASIS_STYLE.get(c.emphasis, "Point")
+        body = _with_highlight(c)
+        t0, t1 = _ass_time(c.start_ms), _ass_time(c.end_ms)
+        # 아래층: 검정 반투명 + 블러. 같은 스타일이라 위치가 저절로 맞는다.
         lines.append(
-            f"Dialogue: 1,{_ass_time(c.start_ms)},{_ass_time(c.end_ms)},{style},,0,0,0,,{_with_highlight(c)}\n"
+            f"Dialogue: 0,{t0},{t1},{style},,0,0,0,,"
+            f"{{\\c&H000000&\\alpha&H70&\\blur20\\bord0\\shad0}}{_ass_escape(c.text)}\n"
+        )
+        # 위층: 실제 글자. 테두리·그림자 없이 깨끗하게.
+        lines.append(
+            f"Dialogue: 1,{t0},{t1},{style},,0,0,0,,{{\\bord0\\shad0}}{body}\n"
         )
     out = Path(out_path)
     out.write_text("".join(lines), encoding="utf-8")
