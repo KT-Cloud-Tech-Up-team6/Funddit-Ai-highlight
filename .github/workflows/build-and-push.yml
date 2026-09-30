@@ -31,7 +31,8 @@ jobs:
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - uses: docker/build-push-action@v6
+      - id: push-image
+        uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64
@@ -44,3 +45,29 @@ jobs:
           printf 'Image: `%s`\nCommit: `%s`\n' \
             "${{ steps.ecr.outputs.registry }}/fundit-ai-highlight:sha-${{ github.sha }}" \
             "$GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Dispatch GitOps image update
+        env:
+          GH_TOKEN: ${{ secrets.FUNDIT_GITOPS_TOKEN }}
+          IMAGE_DIGEST: ${{ steps.push-image.outputs.digest }}
+          IMAGE_TAG: sha-${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo '::error::Missing FUNDIT_GITOPS_TOKEN Actions secret.'
+            exit 1
+          fi
+          if [[ ! "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo '::error::Missing valid digest from the Docker push step.'
+            exit 1
+          fi
+
+          gh workflow run cd-dispatch-highlight-image.yml \
+            --repo KT-Cloud-Tech-Up-team6/Fundit-GitOps \
+            --ref main \
+            -f image_tag="$IMAGE_TAG" \
+            -f image_digest="$IMAGE_DIGEST" \
+            -f source_sha="$GITHUB_SHA"
+
+          printf 'GitOps image update requested for `%s` (`%s`).\n' \
+            "$IMAGE_TAG" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
