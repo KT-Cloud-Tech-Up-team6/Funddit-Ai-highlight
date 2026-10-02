@@ -16,12 +16,43 @@ from poc.llm import PRICE_PER_M, _extract_json
 from poc.models import Cue
 from poc.transcript import merge_to_sentences, save_cues
 
+# 큐 하나가 구간 분할과 자막의 최소 단위다. 길면 60~120초 구간 경계를
+# 맞출 수 없고 자막도 뭉개진다. Whisper large-v3 가 20분 방송에서 340개를
+# 뽑았는데 (큐당 3.5초), 기본 프롬프트의 Gemini 는 20개(큐당 60초)였다.
+# 그래서 길이 상한을 숫자로 못박는다 — "문장 단위"만으로는 안 지킨다.
 PROMPT = """다음 한국어 라이브 쇼핑 방송 오디오를 받아써라.
-- 발화를 문장 단위로 나누고 각 문장의 시작·끝 시각(초, 소수 1자리)을 적는다.
+
+가장 중요한 규칙 — 짧게 쪼갠다:
+- 한 세그먼트는 **최대 6초**다. 6초를 넘기면 쉼표·어절 경계에서 반드시 끊는다.
+- 한 세그먼트는 **최대 40자**다. 길면 끊는다.
+- 긴 문장은 한 덩어리로 두지 말고 여러 세그먼트로 나눈다.
+- 10분 오디오면 세그먼트가 **100개 이상** 나와야 정상이다. 20~30개면 너무 적다.
+
+그 밖의 규칙:
+- 각 세그먼트의 시작·끝 시각(초, 소수 1자리)을 적는다. 시각은 겹치지 않게.
 - 들리는 대로 정확히. 숫자·가격·단위는 아라비아 숫자로 (예: 20만 원, 90도, 12.5cm, 20,000Pa).
 - 없는 말을 만들지 말고, 음악·무음 구간은 건너뛴다.
 {hint}
 출력 JSON: {{"segments": [{{"start": 0.0, "end": 3.2, "text": "..."}}, ...]}}"""
+
+
+#: `{"start": 1.0, "end": 2.0, "text": "..."}` 한 덩어리. 중간에 키 이름이
+#: 빠진 항목이 섞여 있어도 성한 것만 집어낸다.
+_SEG_RE = re.compile(
+    r'\{\s*"start"\s*:\s*([\d.]+)\s*,\s*(?:"end"\s*:\s*)?([\d.]+)\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"',
+)
+#: 텍스트 모드 폴백: `[12.3-15.0] 문장`
+_LINE_RE = re.compile(r"\[\s*([\d.]+)\s*[-~]\s*([\d.]+)\s*\]\s*(.+)")
+
+
+def _salvage_segments(text: str) -> list[dict]:
+    """깨진 JSON 에서 성한 세그먼트만 건진다."""
+    segs = [{"start": m.group(1), "end": m.group(2), "text": m.group(3)}
+            for m in _SEG_RE.finditer(text)]
+    if segs:
+        return segs
+    return [{"start": m.group(1), "end": m.group(2), "text": m.group(3)}
+            for m in _LINE_RE.finditer(text)]
 
 
 def transcribe(video: str | Path, out_json: str | Path, model: str = "gemini-3.7-flash",
@@ -67,13 +98,17 @@ def transcribe(video: str | Path, out_json: str | Path, model: str = "gemini-3.7
         except Exception:  # noqa: BLE001
             pass
     t_all = time.time() - t0
+    text = resp.text or ""
     try:
-        data = _extract_json(resp.text or "")
-    except Exception:  # noqa: BLE001 — 텍스트 모드: '[12.3-15.0] 문장' 줄 파싱
-        segs = []
-        for m in re.finditer(r"\[\s*([\d.]+)\s*[-~]\s*([\d.]+)\s*\]\s*(.+)", resp.text or ""):
-            segs.append({"start": m.group(1), "end": m.group(2), "text": m.group(3)})
-        data = {"segments": segs}
+        data = _extract_json(text)
+        if not data.get("segments"):
+            raise ValueError("segments 없음")
+    except Exception:  # noqa: BLE001
+        # 세그먼트가 수백 개면 그중 하나만 깨져도 json.loads 가 전부 버린다.
+        # (실제로 `{"start": 596.5, 600.0, "text": ...}` 처럼 "end" 키가
+        #  빠진 응답을 받았다.) 성한 것만 건져 쓴다 — 한 줄 때문에 10분치
+        # 전사를 버릴 이유가 없다.
+        data = {"segments": _salvage_segments(text)}
     raw = []
     for i, s in enumerate(data.get("segments", []), 1):
         try:
