@@ -352,12 +352,21 @@ def _render_stages(job_id: str, paths: JobPaths, candidate_ids: list[str],
             pass
 
         video_file = paths.short_video(cid)
+        # S3 에 올려 두면 FE 가 CDN 에서 바로 받는다. 파드의 /data 는 emptyDir 라
+        # 재시작하면 사라지므로, 올라간 뒤에는 그 경로를 콜백에 쓴다.
+        thumb_file = paths.short_thumb(cid)
+        s3_video = storage.upload_media(video_file, f"{job_id}/{cid}.mp4", "video/mp4")
+        s3_thumb = storage.upload_media(thumb_file, f"{job_id}/{cid}.jpg", "image/jpeg")
+
         results.append({
             "candidate_id": cid,
             "part_type": cand["part_type"],
             "title": title,
             "duration_sec": round(duration_ms / 1000, 1),
             "size_bytes": video_file.stat().st_size if video_file.exists() else 0,
+            # 업로드에 실패했으면 비워 둔다 — 조회 시점에 로컬 URL 로 채운다.
+            "s3_key": s3_video,
+            "s3_thumb_key": s3_thumb,
             "captions": [
                 {"text": c.text, "highlight": c.highlight, "emphasis": c.emphasis,
                  "start_ms": c.start_ms, "end_ms": c.end_ms}
@@ -459,12 +468,16 @@ def run_for_live(job_id: str, live_id: str, highlight_id: str | None,
                 src = by_id.get(cid, {})
                 s.setdefault("start_ms", src.get("start_ms", 0))
                 s.setdefault("end_ms", src.get("end_ms", 0))
-                video = paths.short_video(cid)
-                if video.exists():
-                    s["video_url"] = paths.url(video)
-                thumb = paths.short_thumb(cid)
-                if thumb.exists():
-                    s["thumbnail_url"] = paths.url(thumb)
+                # S3 에 올라갔으면 그 경로를 쓴다. 로컬 파일은 파드가 재시작하면
+                # 사라져 콜백으로 보낸 URL 이 깨진다.
+                if s.get("s3_key"):
+                    s["video_url"] = "/" + s["s3_key"]
+                elif paths.short_video(cid).exists():
+                    s["video_url"] = paths.url(paths.short_video(cid))
+                if s.get("s3_thumb_key"):
+                    s["thumbnail_url"] = "/" + s["s3_thumb_key"]
+                elif paths.short_thumb(cid).exists():
+                    s["thumbnail_url"] = paths.url(paths.short_thumb(cid))
             clips = callback.to_clips(shorts, base_url, highlight_id)
 
         _set(job_id, marker_count=len(markers), clip_count=len(clips))

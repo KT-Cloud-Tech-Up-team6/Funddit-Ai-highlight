@@ -19,3 +19,7 @@ numpy>=1.26
 
 # Kafka 구독 (live.ended.v1) — ENABLE_KAFKA_CONSUMER=1 일 때만 사용
 kafka-python>=2.0
+
+# 쇼츠 S3 업로드 — MEDIA_S3_BUCKET 설정 시에만 사용.
+# 자격증명은 IRSA 가 준다 (키 주입 없음).
+boto3>=1.34

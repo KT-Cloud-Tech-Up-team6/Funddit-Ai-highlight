@@ -8,12 +8,16 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
+import os
 import shutil
 from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
 from api.settings import WORKSPACE
+
+_logger = logging.getLogger("api.storage")
 
 # 응답에 담는 파일 URL의 접두. api/main.py 의 BASE 와 같아야 한다.
 API_BASE = "/api/v1/ai"
@@ -167,6 +171,51 @@ def find_cached_transcript(fingerprint: str, exclude_job: str | None = None) -> 
         if t.exists():
             return t
     return None
+
+
+#: 쇼츠를 올릴 S3 버킷. 없으면 업로드하지 않고 로컬 서빙 URL을 쓴다 —
+#: 로컬 개발과 S3 없는 환경에서 그대로 돌아가야 한다.
+MEDIA_S3_BUCKET = os.environ.get("MEDIA_S3_BUCKET", "")
+#: 버킷 안 경로. CloudFront 가 media/ 아래를 그대로 노출한다 (인프라 회신 10-02).
+MEDIA_S3_PREFIX = os.environ.get("MEDIA_S3_PREFIX", "media/shorts")
+_S3_REGION = os.environ.get("AWS_REGION", "ap-northeast-2")
+
+_s3_client = None
+
+
+def _s3():
+    """boto3 클라이언트를 한 번만 만든다. 자격증명은 IRSA 가 준다 (키 주입 없음)."""
+    global _s3_client
+    if _s3_client is None:
+        import boto3
+
+        _s3_client = boto3.client("s3", region_name=_S3_REGION)
+    return _s3_client
+
+
+def upload_media(local: Path, key_suffix: str, content_type: str) -> str | None:
+    """쇼츠·썸네일을 S3 에 올리고 버킷 기준 경로를 돌려준다.
+
+    돌려주는 값은 `media/shorts/...` 같은 상대 경로다. 앞에 붙일 도메인은
+    PUBLIC_BASE_URL 이 정한다 — 버킷과 CDN 도메인이 따로 바뀔 수 있어
+    여기서 합치지 않는다.
+
+    버킷 미설정이거나 업로드가 실패하면 None 을 돌려준다. 호출부는 그때
+    로컬 서빙 URL 로 돌아간다 — 업로드 실패가 생성 결과를 버릴 이유는 없다.
+    """
+    if not MEDIA_S3_BUCKET or not local.exists():
+        return None
+
+    key = f"{MEDIA_S3_PREFIX.strip('/')}/{key_suffix.lstrip('/')}"
+    try:
+        _s3().upload_file(str(local), MEDIA_S3_BUCKET, key,
+                          ExtraArgs={"ContentType": content_type})
+    except Exception as e:  # noqa: BLE001 — 업로드 실패로 결과물을 버리지 않는다
+        _logger.error("S3 업로드 실패", extra={"key": key, "bucket": MEDIA_S3_BUCKET,
+                                             "error": f"{type(e).__name__}: {e}"})
+        return None
+    _logger.info("S3 업로드", extra={"key": key, "bytes": local.stat().st_size})
+    return key
 
 
 #: HLS 재생목록의 첫 줄. 확장자가 없거나 틀려도 내용으로 판별한다.
