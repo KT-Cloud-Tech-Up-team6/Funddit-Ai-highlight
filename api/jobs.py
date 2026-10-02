@@ -144,14 +144,29 @@ def _analysis_stages(job_id: str, paths: JobPaths, t0: float) -> None:
         paths.transcript.write_text(cached.read_text(encoding="utf-8"), encoding="utf-8")
         _set(job_id, stt_reused=True, progress=0.6)
     else:
+        engine = settings.STT_ENGINE
+        label = (settings.STT_GEMINI_MODEL if engine == "gemini" else settings.STT_MODEL)
         _set(job_id, status=JobStatus.TRANSCRIBING,
-             stage_detail=f"음성 인식 ({settings.STT_MODEL})", progress=0.15)
-        from poc.stt_whisper import transcribe
+             stage_detail=f"음성 인식 ({label})", progress=0.15)
 
-        initial_prompt = _terms_prompt(paths.terms)
-        transcribe(paths.video, paths.transcript,
-                   model_size=settings.STT_MODEL, initial_prompt=initial_prompt)
-        _set(job_id, stt_reused=False, progress=0.6)
+        if engine == "gemini":
+            # GPU 가 없는 환경용. Whisper 를 CPU 로 돌리면 모델만 1.7GB 가
+            # 상주하고 20분 영상 피크가 5GB 를 넘어 파드가 재시작된다.
+            from poc.stt_gemini import transcribe as _gemini_stt
+
+            _gemini_stt(paths.video, paths.transcript,
+                        model=settings.STT_GEMINI_MODEL,
+                        terms_path=paths.terms if paths.terms.exists() else None,
+                        # Gemini 는 이미 3초 안팎으로 끊어 주므로 재병합하지 않는다.
+                        # 합치면 큐가 굵어져 구간 경계와 자막 타이밍이 뭉개진다.
+                        merge=False)
+        else:
+            from poc.stt_whisper import transcribe
+
+            transcribe(paths.video, paths.transcript,
+                       model_size=settings.STT_MODEL,
+                       initial_prompt=_terms_prompt(paths.terms))
+        _set(job_id, stt_reused=False, stt_engine=engine, progress=0.6)
 
     cues = load_cues(paths.transcript)
 

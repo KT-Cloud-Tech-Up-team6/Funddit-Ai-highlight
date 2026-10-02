@@ -104,12 +104,15 @@ def health() -> HealthCheck:
     if not ffmpeg:
         notes.append("ffmpeg를 찾을 수 없습니다. 렌더링이 불가능합니다.")
 
+    # gemini 엔진이면 Whisper 가 없어도 정상이다 — ok 판정에 넣지 않는다.
+    stt_gemini = settings.STT_ENGINE == "gemini"
     try:
         import faster_whisper  # noqa: F401
         whisper_ok = True
     except ImportError:
         whisper_ok = False
-        notes.append("faster-whisper가 없습니다. pip install faster-whisper")
+        if not stt_gemini:
+            notes.append("faster-whisper가 없습니다. pip install faster-whisper")
 
     gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
     if not gemini_key:
@@ -123,8 +126,10 @@ def health() -> HealthCheck:
             gpu = r.stdout.strip().splitlines()[0] if r.stdout.strip() else None
     except (OSError, subprocess.SubprocessError):
         pass
-    if gpu is None:
-        notes.append("GPU를 찾을 수 없습니다. 음성 인식이 CPU로 돌아 느려집니다.")
+    if gpu is None and not stt_gemini:
+        notes.append("GPU를 찾을 수 없습니다. 음성 인식이 CPU로 돌아 느려지고 "
+                     "메모리를 크게 씁니다. SHORTS_STT_ENGINE=gemini 로 바꾸면 "
+                     "GPU 없이 돌릴 수 있습니다.")
 
     # 배포 연동 설정 — 값은 비밀이라 담지 않고 설정 여부만 낸다.
     # 하나라도 빠지면 파드는 정상인데 연동만 조용히 끊기므로 여기서 드러낸다.
@@ -154,9 +159,10 @@ def health() -> HealthCheck:
                      "브라우저가 클립 재생을 막습니다.")
 
     return HealthCheck(
-        ok=ffmpeg and whisper_ok and gemini_key,
+        ok=ffmpeg and (whisper_ok or stt_gemini) and gemini_key,
         ffmpeg=ffmpeg, whisper=whisper_ok, gemini_key=gemini_key,
-        llm_model=settings.LLM_MODEL, stt_model=settings.STT_MODEL,
+        llm_model=settings.LLM_MODEL,
+        stt_model=(settings.STT_GEMINI_MODEL if stt_gemini else settings.STT_MODEL),
         gpu=gpu, active_jobs=jobs.active_count(), notes=notes,
         integration=integration,
     )

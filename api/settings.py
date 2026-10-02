@@ -15,6 +15,14 @@ WORKSPACE = Path(os.environ.get("SHORTS_WORKSPACE", ROOT / "workspace"))
 #       최저 점수 0.87, 상위권 모델 중 안정성 1위(0.81).
 LLM_MODEL = "gemini-3.6-flash"   # 환경변수 GEMINI_MODEL로 덮어쓸 수 있다 (ensure_runtime_env에서 반영)
 STT_MODEL = os.environ.get("SHORTS_STT_MODEL", "large-v3")
+# 음성 인식 엔진. whisper 는 GPU 가 있어야 제 속도가 나고 CPU 로 떨어지면
+# 메모리 1.7GB 를 상주로 먹는다 (20분 영상 피크 5GB+). GPU 가 없는 환경에서는
+# gemini 로 돌린다 — 실측 품질이 동등하고 메모리를 쓰지 않는다.
+#   로보락 20분 실측: 키워드 적중 둘 다 100%, 오인식 0건,
+#                     큐 340(whisper) vs 307(gemini), 299초 vs 40초
+STT_ENGINE = os.environ.get("SHORTS_STT_ENGINE", "whisper").strip().lower()
+# gemini 엔진이 쓸 모델. STT_MODEL(large-v3 등)은 whisper 전용이라 따로 둔다.
+STT_GEMINI_MODEL = os.environ.get("SHORTS_STT_GEMINI_MODEL", "gemini-3.7-flash")
 
 # ── 소재 적합성 판정 임계값 ───────────────────────────────────────────
 # 실측: 분당 컷 2.1회 영상은 쇼츠에서 화면이 멈춘 것처럼 보였다.
@@ -58,9 +66,11 @@ def ensure_runtime_env() -> None:
             except (ValueError, OSError):
                 pass
     _load_dotenv()
-    global LLM_MODEL, STT_MODEL
+    global LLM_MODEL, STT_MODEL, STT_ENGINE, STT_GEMINI_MODEL
     LLM_MODEL = os.environ.get("GEMINI_MODEL", LLM_MODEL)
     STT_MODEL = os.environ.get("SHORTS_STT_MODEL", STT_MODEL)
+    STT_ENGINE = os.environ.get("SHORTS_STT_ENGINE", STT_ENGINE).strip().lower()
+    STT_GEMINI_MODEL = os.environ.get("SHORTS_STT_GEMINI_MODEL", STT_GEMINI_MODEL)
     from api import logging_config
     logging_config.setup()
 
