@@ -169,16 +169,69 @@ def find_cached_transcript(fingerprint: str, exclude_job: str | None = None) -> 
     return None
 
 
+#: HLS 재생목록의 첫 줄. 확장자가 없거나 틀려도 내용으로 판별한다.
+_HLS_MAGIC = b"#EXTM3U"
+#: 재생목록은 텍스트라 작다. 이보다 크면 통짜 영상으로 본다.
+_PLAYLIST_MAX = 4 * 1024 * 1024
+
+
 def download(url: str, dst: Path, *, timeout: int = 300) -> Path:
-    """원격 VOD를 내려받는다 (live-service 는 파일이 아니라 URL을 준다)."""
+    """원격 VOD를 내려받는다 (live-service 는 파일이 아니라 URL을 준다).
+
+    통짜 파일(mp4)과 HLS(m3u8 + .ts 조각) 둘 다 받는다. IVS 녹화는 HLS 로
+    오고, 미리 올려둔 영상은 mp4 로 온다 — 어느 쪽이 올지 호출부가 몰라도 된다.
+
+    확장자를 믿지 않고 받은 내용으로 판별한다. CDN 이 쿼리스트링을 붙이거나
+    확장자 없이 주는 경우가 있어서다.
+    """
     import urllib.request
 
     dst.parent.mkdir(parents=True, exist_ok=True)
     req = urllib.request.Request(url, headers={"User-Agent": "funddit-ai-highlight/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as resp, dst.open("wb") as f:
+        head = resp.read(len(_HLS_MAGIC))
+        f.write(head)
         shutil.copyfileobj(resp, f)
-    if dst.stat().st_size == 0:
+
+    size = dst.stat().st_size
+    if size == 0:
         raise ValueError("빈 파일을 받았습니다")
+
+    # 재생목록을 그대로 두면 ffmpeg·Whisper 가 깨진 영상으로 읽는다.
+    # 조각을 합쳐 통짜 파일로 바꾼다.
+    if head.startswith(_HLS_MAGIC) and size <= _PLAYLIST_MAX:
+        return _merge_hls(url, dst, timeout=timeout)
+    return dst
+
+
+def _merge_hls(url: str, dst: Path, *, timeout: int) -> Path:
+    """HLS 재생목록을 따라가 조각을 하나의 mp4 로 합친다.
+
+    재인코딩하지 않는다 (-c copy) — 조각을 이어 붙이기만 하므로 20분 방송도
+    수십 초면 끝난다. 다시 인코딩하면 화질이 떨어지고 몇 분씩 걸린다.
+    """
+    import subprocess
+
+    tmp = dst.with_suffix(".hls.mp4")
+    cmd = [
+        "ffmpeg", "-nostdin", "-y",
+        # 마스터 플레이리스트가 상대 경로로 하위 목록을 가리킨다.
+        "-protocol_whitelist", "file,http,https,tcp,tls,crypto",
+        "-i", url,
+        "-c", "copy",
+        # .ts 의 MPEG-TS 타임스탬프를 mp4 용으로 다시 매긴다.
+        # 안 하면 첫 프레임 시각이 0 이 아니라 자막 싱크가 밀린다.
+        "-bsf:a", "aac_adtstoasc",
+        "-movflags", "+faststart",
+        str(tmp),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    if r.returncode != 0 or not tmp.exists() or tmp.stat().st_size == 0:
+        tmp.unlink(missing_ok=True)
+        tail = (r.stderr or "").strip().splitlines()[-3:]
+        raise ValueError("HLS 병합 실패: " + " / ".join(tail))
+
+    tmp.replace(dst)
     return dst
 
 
