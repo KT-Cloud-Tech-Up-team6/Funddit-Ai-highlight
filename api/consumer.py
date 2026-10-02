@@ -169,13 +169,30 @@ def _iso_to_ms(value) -> int | None:
 
 def start() -> None:
     """백그라운드 스레드로 컨슈머를 띄운다. 실패해도 서버는 계속 뜬다."""
-    if os.environ.get("ENABLE_KAFKA_CONSUMER", "").lower() not in ("1", "true"):
+    enabled = os.environ.get("ENABLE_KAFKA_CONSUMER", "").lower() in ("1", "true")
+    brokers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
+
+    if not enabled:
+        # 브로커만 있고 플래그가 없으면 설정 누락일 가능성이 높다. 조용히 넘기면
+        # 파드도 헬스체크도 정상인데 이벤트만 안 들어와 원인 찾기가 오래 걸린다.
+        if brokers:
+            _logger.warning(
+                "ENABLE_KAFKA_CONSUMER 미설정 — 브로커는 있는데 구독하지 않는다. "
+                "의도한 것이 아니면 ENABLE_KAFKA_CONSUMER=1 을 넣어야 한다",
+                extra={"kafka_bootstrap_servers": brokers})
+        else:
+            _logger.info("Kafka 컨슈머 비활성 (ENABLE_KAFKA_CONSUMER 미설정)")
         return
 
-    brokers = os.environ.get("KAFKA_BOOTSTRAP_SERVERS")
     if not brokers:
         _logger.warning("KAFKA_BOOTSTRAP_SERVERS 미설정 — 컨슈머를 띄우지 않는다")
         return
+
+    # 구독해도 LIVE_SERVICE_URL 이 없으면 VOD 조회·콜백이 모두 실패한다.
+    # 이벤트를 받고 나서 알면 늦으므로 기동 시점에 먼저 알린다.
+    if not os.environ.get("LIVE_SERVICE_URL"):
+        _logger.warning(
+            "LIVE_SERVICE_URL 미설정 — 이벤트를 받아도 VOD 조회와 콜백이 모두 실패한다")
 
     threading.Thread(target=_run, args=(brokers,), daemon=True, name="kafka-consumer").start()
 

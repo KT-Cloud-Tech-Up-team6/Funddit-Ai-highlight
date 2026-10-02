@@ -212,3 +212,6 @@ class HealthCheck(BaseModel):
     gpu: str | None = None
     active_jobs: int
     notes: list[str] = []
+    # 배포 연동 설정. 값은 비밀이라 담지 않고 설정 여부만 낸다 —
+    # 인프라가 로그를 뒤지지 않고 /health 로 누락을 확인할 수 있게 한다.
+    integration: dict[str, bool] = {}

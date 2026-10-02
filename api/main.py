@@ -126,11 +126,39 @@ def health() -> HealthCheck:
     if gpu is None:
         notes.append("GPU를 찾을 수 없습니다. 음성 인식이 CPU로 돌아 느려집니다.")
 
+    # 배포 연동 설정 — 값은 비밀이라 담지 않고 설정 여부만 낸다.
+    # 하나라도 빠지면 파드는 정상인데 연동만 조용히 끊기므로 여기서 드러낸다.
+    consumer_on = os.environ.get("ENABLE_KAFKA_CONSUMER", "").lower() in ("1", "true")
+    brokers = bool(os.environ.get("KAFKA_BOOTSTRAP_SERVERS"))
+    live_url = os.environ.get("LIVE_SERVICE_URL", "")
+    internal_key = bool(os.environ.get("INTERNAL_API_KEY")
+                        or os.environ.get("INTERNAL_GATEWAY_SECRET"))
+    public_base = settings.PUBLIC_BASE_URL
+
+    integration = {
+        "kafka_consumer_enabled": consumer_on,
+        "kafka_brokers": brokers,
+        "live_service_url": bool(live_url),
+        "internal_api_key": internal_key,
+        "public_base_url_https": public_base.startswith("https://"),
+    }
+
+    if brokers and not consumer_on:
+        notes.append("ENABLE_KAFKA_CONSUMER가 없습니다. 브로커는 있는데 이벤트를 받지 않습니다.")
+    if not live_url:
+        notes.append("LIVE_SERVICE_URL이 없습니다. VOD 조회와 BE 콜백이 모두 실패합니다.")
+    if not internal_key:
+        notes.append("INTERNAL_API_KEY가 없습니다. BE 콜백이 401로 거부됩니다.")
+    if not public_base.startswith("https://"):
+        notes.append(f"PUBLIC_BASE_URL이 HTTPS가 아닙니다({public_base}). "
+                     "브라우저가 클립 재생을 막습니다.")
+
     return HealthCheck(
         ok=ffmpeg and whisper_ok and gemini_key,
         ffmpeg=ffmpeg, whisper=whisper_ok, gemini_key=gemini_key,
         llm_model=settings.LLM_MODEL, stt_model=settings.STT_MODEL,
         gpu=gpu, active_jobs=jobs.active_count(), notes=notes,
+        integration=integration,
     )
 
 
