@@ -146,6 +146,8 @@ def health() -> HealthCheck:
         "live_service_url": bool(live_url),
         "internal_api_key": internal_key,
         "public_base_url_https": public_base.startswith("https://"),
+        # 없어도 생성은 되고 쇼츠 제목에서 상품명만 빠진다.
+        "project_service_url": bool(os.environ.get("PROJECT_SERVICE_URL")),
     }
 
     if brokers and not consumer_on:
@@ -154,6 +156,9 @@ def health() -> HealthCheck:
         notes.append("LIVE_SERVICE_URL이 없습니다. VOD 조회와 BE 콜백이 모두 실패합니다.")
     if not internal_key:
         notes.append("INTERNAL_API_KEY가 없습니다. BE 콜백이 401로 거부됩니다.")
+    if not os.environ.get("PROJECT_SERVICE_URL"):
+        notes.append("PROJECT_SERVICE_URL이 없습니다. Kafka로 들어온 작업은 "
+                     "쇼츠 제목에 상품명이 빠집니다.")
     if not public_base.startswith("https://"):
         notes.append(f"PUBLIC_BASE_URL이 HTTPS가 아닙니다({public_base}). "
                      "브라우저가 클립 재생을 막습니다.")

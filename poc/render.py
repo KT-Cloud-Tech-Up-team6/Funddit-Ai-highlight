@@ -15,7 +15,22 @@ FONT_FALLBACK = "Malgun Gothic"
 C_WHITE = "&H00FFFFFF"     # 기본 흰색
 C_CREAM = "&H00E8F4FF"     # 크림 (아주 옅은 노랑) — 제목
 C_INK = "&H00302820"       # 제목 외곽선 (살짝 따뜻한 먹색)
-C_SHADOW = "&H80000000"    # 그림자 검정 50% — 강조 자막의 번지는 그림자
+C_SHADOW = "&H80000000"    # 제목 그림자 검정 50%
+
+# 강조 자막 뒤에 까는 검정 배경판 (아래층 전용 오버라이드).
+#
+# 처음에는 \blur 로 번지는 그림자를 깔았는데, 밝은 배경(스테인리스 가전,
+# 흰 주방, 조명)에서 강조 색 주황이 묻혔다. 블러를 키우면 그림자가 글자에서
+# 떨어져 나와 회색 글자가 하나 더 찍힌 것처럼 보였다.
+#
+# 그래서 글자 모양을 따라가는 배경판으로 바꿨다. 글자색(1a)을 투명으로
+# 지우고 테두리(3c)만 두껍게 칠하면, 글자를 감싸는 판이 된다.
+#   3a=28  불투명도 84%. 이보다 옅으면 밝은 배경에서 주황이 묻힌다
+#   xbord  가로 여백을 세로보다 넓게 — 글자가 판에 끼어 보이지 않는다
+#   blur7  가장자리만 살짝 풀어 네모 박스처럼 딱딱해 보이지 않게
+_PLATE = (r"\an2\shad0\4a&HFF&\1a&HFF&"      # 그림자·글자색 끔 (테두리만 남긴다)
+          r"\3c&H000000&\3a&H28&"             # 판 색: 검정 84%
+          r"\xbord26\ybord14\blur7")
 C_BACK = "&HCC000000"      # 발화 자막 배경 박스 검정 80% (시안 opacity 80%)
 
 # 숫자·핵심어 강조색 — 코랄. 형광 주황보다 부드럽다.
@@ -107,19 +122,17 @@ def build_ass(captions: list[Caption], out_path: str | Path, title: str = "", du
                 text = text[:mid] + "\\N" + text[mid + 1:]
         lines.append(f"Dialogue: 0,{_ass_time(st)},{_ass_time(en)},Speech,,0,0,0,,{text}\n")
 
-    # 포인트 자막 — 크게, 흰 글자에 부드러운 그림자
+    # 포인트 자막 — 크게, 흰 글자 + 뒤에 깔린 검정 배경판
     #
-    # 스타일의 Shadow 값은 글자를 오프셋만큼 복사해 찍는 방식이라 가장자리가
-    # 딱딱하다. 번지는 그림자를 내려면 libass 의 \blur 를 써야 한다.
-    # 검정 반투명 글자를 한 겹 깔고 블러를 먹인 뒤 그 위에 본문을 올린다.
+    # 두 겹으로 그린다. 아래층은 같은 문구를 글자색 없이 두꺼운 테두리로만
+    # 그려 배경판을 만들고, 위층에 실제 글자를 올린다. 같은 스타일·같은
+    # 텍스트라 두 층의 위치가 저절로 맞는다.
     for c in captions:
         style = EMPHASIS_STYLE.get(c.emphasis, "Point")
         body = _with_highlight(c)
         t0, t1 = _ass_time(c.start_ms), _ass_time(c.end_ms)
-        # 아래층: 검정 반투명 + 블러. 같은 스타일이라 위치가 저절로 맞는다.
         lines.append(
-            f"Dialogue: 0,{t0},{t1},{style},,0,0,0,,"
-            f"{{\\c&H000000&\\alpha&H70&\\blur20\\bord0\\shad0}}{_ass_escape(c.text)}\n"
+            f"Dialogue: 0,{t0},{t1},{style},,0,0,0,,{{{_PLATE}}}{_ass_escape(c.text)}\n"
         )
         # 위층: 실제 글자. 테두리·그림자 없이 깨끗하게.
         lines.append(

@@ -1,0 +1,12 @@
+{
+  "_note": "클린팟 미니 음식물처리기 (1시간 방송 후반 10분). 제품명은 사용자 확인.",
+  "product_name": "클린팟",
+  "terms": [
+    { "surface": "클린팤", "canonical": "클린팟" },
+    { "surface": "클린팟트", "canonical": "클린팟" },
+    { "surface": "크린팟", "canonical": "클린팟" },
+    { "surface": "클린파트", "canonical": "클린팟" },
+    { "surface": "음쓰", "canonical": "음식물" },
+    { "surface": "미생물", "canonical": "미생물" }
+  ]
+}

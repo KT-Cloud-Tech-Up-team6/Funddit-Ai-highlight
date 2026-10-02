@@ -99,8 +99,15 @@ def handle(payload: dict) -> str:
         callback.send(live_id, callback.failed(None, f"VOD 다운로드 실패: {type(e).__name__}"))
         return "다운로드 실패"
 
+    # 쇼츠 제목이 `[상품명] 내용` 형식이라 상품명을 먼저 받아 둔다.
+    # 없으면 제목에서 빠질 뿐 생성은 그대로 진행한다.
+    product = fetch_product_name(payload.get("projectId") or payload.get("project_id") or "")
+    if product:
+        storage.write_json(paths.terms, {"product_name": product, "terms": []})
+
     jobs._set(job_id, status="queued", stage_detail="대기 중", progress=0.0,
               live_id=live_id, highlight_id=None,
+              product_name=product,
               broadcast_start_ms=_iso_to_ms(payload.get("startedAt")),
               source="kafka")
 
@@ -154,6 +161,40 @@ def wait_for_vod(live_id: str, *, timeout_sec: int | None = None,
         time.sleep(interval_sec)
 
     return None
+
+
+def fetch_product_name(project_id: str, *, timeout: int = 10) -> str | None:
+    """프로젝트 상세에서 상품명을 가져온다.
+
+    쇼츠 제목이 `[상품명] 내용` 형식인데, live.ended.v1 페이로드에는
+    상품명이 없고 projectId 만 온다. API 로 들어오는 요청은 BE 가
+    product_name 을 같이 보내지만 (api/main.py), Kafka 경로는 여기서
+    채우지 않으면 제목에 상품명이 빠진다.
+
+    인증이 없는 공개 상세라 내부 키가 필요 없다. 실패해도 None 을
+    돌려준다 — 상품명이 없다고 생성을 멈출 이유는 없다.
+    """
+    import urllib.error
+    import urllib.request
+
+    # project-service 는 live-service 와 다른 서비스라 주소가 따로다
+    # (클러스터에서 http://fundit-project-svc:8080). 미설정이면 조용히 건너뛴다.
+    base = os.environ.get("PROJECT_SERVICE_URL", "").rstrip("/")
+    if not base or not project_id:
+        return None
+    url = f"{base}/api/v1/projects/{project_id}"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            title = (json.loads(resp.read().decode("utf-8")) or {}).get("title")
+    except (urllib.error.URLError, OSError, ValueError, TimeoutError) as e:
+        _logger.warning("상품명 조회 실패 — 제목에서 생략한다",
+                        extra={"project_id": project_id,
+                               "error": f"{type(e).__name__}: {e}"})
+        return None
+    title = str(title or "").strip()
+    if title:
+        _logger.info("상품명 확인", extra={"project_id": project_id, "title": title})
+    return title or None
 
 
 def _iso_to_ms(value) -> int | None:
