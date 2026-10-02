@@ -20,7 +20,9 @@ STT_MODEL = os.environ.get("SHORTS_STT_MODEL", "large-v3")
 # gemini 로 돌린다 — 실측 품질이 동등하고 메모리를 쓰지 않는다.
 #   로보락 20분 실측: 키워드 적중 둘 다 100%, 오인식 0건,
 #                     큐 340(whisper) vs 307(gemini), 299초 vs 40초
-STT_ENGINE = os.environ.get("SHORTS_STT_ENGINE", "whisper").strip().lower()
+# 기본값이 gemini 인 이유: 배포 환경에 GPU 가 없다. whisper 로 두면 CPU 로
+# 떨어져 파드가 OOM 으로 재시작된다. GPU 노드가 붙으면 whisper 로 되돌린다.
+STT_ENGINE = os.environ.get("SHORTS_STT_ENGINE", "gemini").strip().lower()
 # gemini 엔진이 쓸 모델. STT_MODEL(large-v3 등)은 whisper 전용이라 따로 둔다.
 STT_GEMINI_MODEL = os.environ.get("SHORTS_STT_GEMINI_MODEL", "gemini-3.7-flash")
 

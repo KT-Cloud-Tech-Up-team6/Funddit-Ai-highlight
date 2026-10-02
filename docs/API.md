@@ -478,7 +478,7 @@ GPU 점유 때문에 동시 2건으로 제한되어 있습니다. 초과분은 �
 | `GEMINI_API_KEY` | — | **필수** |
 | `GEMINI_MODEL` | `gemini-3.6-flash` | 모델 변경 시 |
 | `SHORTS_WORKSPACE` | `./workspace` | 작업 폴더 위치 |
-| `SHORTS_STT_ENGINE` | `whisper` | 음성 인식 엔진. GPU 가 없으면 `gemini` — 메모리를 쓰지 않고 품질은 실측 동등 |
+| `SHORTS_STT_ENGINE` | `gemini` | 음성 인식 엔진. GPU 노드가 있으면 `whisper` (비용 0원). 품질은 실측 동등 |
 | `SHORTS_STT_MODEL` | `large-v3` | Whisper 모델 (engine=whisper 일 때) |
 | `SHORTS_STT_GEMINI_MODEL` | `gemini-3.7-flash` | Gemini 모델 (engine=gemini 일 때) |
 | `SHORTS_MIN_CUTS_PER_MIN` | `10` | 소재 적합성 기준 |
